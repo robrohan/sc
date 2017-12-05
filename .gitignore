@@ -1,0 +1,15 @@
+.DS_Store
+*.o
+*.swp
+
+## Some generated files
+experres.h
+gram.c
+psc
+pvmtbl.c
+pxmalloc.c
+qhelp.c
+sc
+scqref
+statres.h
+y.tab.h

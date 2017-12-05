@@ -70,8 +70,8 @@ RINT=
 
 # Set RE_COMP if you have the re_comp/re_exec regular expression routines
 # (most BSD based systems do).
-#RE_COMP=
-RE_COMP=-DRE_COMP
+RE_COMP=
+#RE_COMP=-DRE_COMP
 
 # Set REGCMP if you have the regcmp/regex regular expression routines
 # (most System V based systems do)
