@@ -9,6 +9,8 @@ and keyboard shortcuts resembling the key bindings of the Vim text editor.
 
 [Read history here](https://en.wikipedia.org/wiki/Sc_(spreadsheet_calculator))
 
+![Screenshot](screen.png)
+
 ## Manual
 
 [Mini Manual](manual.pdf)
