@@ -1,0 +1,17 @@
+.DS_Store
+*~
+screen.png
+
+*.o
+experres.h
+statres.h
+y.tab.h
+gram.c
+pvmtbl.c
+pxmalloc.c
+qhelp.c
+
+scqref
+psc
+sc
+
