@@ -9,9 +9,13 @@
  *		$Revision: 7.16 $
  *
  */
+#ifndef SC_SC_H
+#define SC_SC_H
+
 
 #ifdef MSDOS
 #include <stdio.h>
+#include <unistd.h>
 #endif
 
 #define	ATBL(tbl, row, col)	(*(tbl + row) + (col))
@@ -627,3 +631,5 @@ extern	int collimit;
 #else
 #include <memory.h>
 #endif
+
+#endif // header guard

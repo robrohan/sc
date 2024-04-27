@@ -23,6 +23,12 @@
 
 static	struct abbrev *abbr_base;
 
+int
+are_abbrevs()
+{
+    return (abbr_base != 0);
+}
+
 void
 add_abbr(char *string)
 {
@@ -173,8 +179,3 @@ write_abbrevs(FILE *f)
     }
 }
 
-int
-are_abbrevs()
-{
-    return (abbr_base != 0);
-}
