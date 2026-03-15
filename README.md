@@ -7,7 +7,7 @@ and keyboard shortcuts resembling the key bindings of the Vim text editor.
 
 [Read more on Wikipedia](https://en.wikipedia.org/wiki/Sc_(spreadsheet_calculator))
 
-![Screenshot](screen.png)
+![Screenshot](docs/screen.png)
 
 ## History
 
