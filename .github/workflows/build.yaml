@@ -13,8 +13,10 @@ jobs:
         include:
           - os: ubuntu-latest
             name: Linux
+            artifact: linux
           - os: macos-latest
             name: macOS
+            artifact: mac
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -32,3 +34,10 @@ jobs:
 
       - name: Build
         run: make
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sc-${{ matrix.artifact }}
+          path: bin/${{ matrix.artifact }}/
+          if-no-files-found: error
