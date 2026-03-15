@@ -50,7 +50,7 @@ through a series of maintainers, each adding features and fixing bugs:
 
 ## Manual
 
-[Mini Manual](manual.pdf)
+[Mini Manual](docs/manual.pdf)
 
 ## Building
 
