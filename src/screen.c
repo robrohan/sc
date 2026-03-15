@@ -870,7 +870,7 @@ update(int anychanged)		/* did any cell really change in value? */
 		    }
 		} /* else */
 	    } else
-	    if (!*pp && color && has_colors && cr && cr->r_color != 1) {
+	    if (!*pp && color && has_colors() && cr && cr->r_color != 1) {
 		move(r, c);
 		color_set(cr->r_color, NULL);
 		printw("%*s", fwidth[col], " ");

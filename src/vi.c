@@ -1122,7 +1122,7 @@ append_line()
 }
 
 static void
-change_case(arg)
+change_case(int arg)
 {
     if (linelim < 0) {
     	linelim = 0;

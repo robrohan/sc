@@ -1,3 +1,7 @@
+CHANGES BETWEEN 7.16 and 8.0:
+Rob Rohan with Claude Code
+	- Updating the code to compile on macOS 26
+
 CHANGES BETWEEN 7.15 and 7.16:
 Chuck Martin
 	-The marks for the last nine edited cells are now updated properly
@@ -703,7 +707,7 @@ Chuck Martin
 	 them user preferences for inclusion in a dotfile.
 	-Fixed a bug that prevented locked cells from being recalculated
 	 (this actually looked deliberate, but I don't understand why, so
-	 I "fixed" it anyway). 
+	 I "fixed" it anyway).
 	-Locked cells now can't be changed even if the command is entered
 	 from scratch at the command line (previously, you were only pre-
 	 vented from using =, <, >, or " to enter insert mode while in a
@@ -949,7 +953,7 @@ Chuck Martin
 	 For now, the numeric argument must precede the whole command, rather
 	 than come in the middle.  For example, "3dw" works; "d3w" does not.
 	-The f, F, t, and T commands in edit mode now work properly even
-	 if the cursor is currently on a character matching the one being 
+	 if the cursor is currently on a character matching the one being
 	 searched for.
 	-More bugs fixed in screen.c dealing with framed ranges, one which
 	 was causing the row labels at the left of the screen to disagree
@@ -1486,9 +1490,9 @@ Kim DeVaughn
 	-suggested a better fix on SunOS 4.x dont use the Sys V
 	 package (CC = /usr/5bin/cc, etc), but use the BSD 4.3 defines
 David Bonnell
-	-scqref [will produce] TROFF output instead of plain text, 
+	-scqref [will produce] TROFF output instead of plain text,
 	 [when] you define QREF_FMT=TROFF in the Makefile.
-	 The resulting quick reference guide uses the MS macro set and you 
+	 The resulting quick reference guide uses the MS macro set and you
 	 build with something like:
 		scqref > quickref
 	 	troff -ms quickref > quickref.ps
@@ -1540,7 +1544,7 @@ Edgard
 Sisira Jayasinghe
 	- added build.com (VMS) and VMS fixes
 Jonathan I. Kamen && Charlie Shub
-	-noted fmod doesn't exist on BSD4.3 and Mt Xinu 
+	-noted fmod doesn't exist on BSD4.3 and Mt Xinu
 Ben Priest
 	-vi compatability: ' ' moves right as well as 'l' while line editing
 Jeff Buhrt
@@ -1550,7 +1554,7 @@ Jeff Buhrt
 	-merged simple fmod into interp.c if fmod() is not present
 
 CHANGES BETWEEN 6.18 and 6.17
-James Dugal	
+James Dugal
 	- NULL pointer fix for is_locked
 Kevin Pye
 	- add a new mode suitable for entry of large amounts of data.
@@ -1635,10 +1639,10 @@ CHANGES BETWEEN 6.15 and 6.14
 Lowell Skoog
 	- fixed a bug in 'F'ormat
 Henk Hesselink
-	- format.c double neg. sign 
+	- format.c double neg. sign
 	- interp.c minr/minc bug, plus modflg wasn't set
 	- fixed a hardcoded path in sc.doc
-	- improvement: 
+	- improvement:
 		-show current cell format in top line
 		-[buhrt: go into edit mode on the old format if it existed
 			otherwise insert mode]
@@ -1800,7 +1804,7 @@ Tom Kloos
 Jack Goral
 	-changes to Makefile to compile under SCO Unix V rel 3.2.0
 Mark Nagel
-	-changes to allow arbitrarily complex formatting of cells 
+	-changes to allow arbitrarily complex formatting of cells
 Kim Sanders
 	-^W generated an incorrect equation (line was not started at beginning)
 Mike Schwartz
@@ -1868,7 +1872,7 @@ Jeff Buhrt (with help from some beta testers-Thank you)
 		 (will prompt if a backup fails)
 	7) put y/n prompt function into yn_ask(mesg)
 	8) found a move(x,y) in sc -> move(y,x) and only move when needed
-	9) we use FullUpdate || changed (to see if ANY cells changed) 
+	9) we use FullUpdate || changed (to see if ANY cells changed)
 		before trying to redraw the screen in update
 		(now we don't try to redraw every time a key is hit)
 		-if we are stand[ing]out we do not create a cell just to force a
@@ -1894,7 +1898,7 @@ Jeff Buhrt (with help from some beta testers-Thank you)
 
 CHANGES BETWEEN 6.1 and 6.7
 
-Dave Lewis - 
+Dave Lewis -
 	Found and fixed a null pointer derefrece in the 'R' command.
 
 Rob McMahon -
@@ -1963,7 +1967,7 @@ Peter King -
 		Also affects order of traversing regions in /f and /r
 	 User setting of automatic or manual recalculation.
 	 User setting of number of times to try recalculation.
-	 + and - commands when in non-numeric mode to do 
+	 + and - commands when in non-numeric mode to do
 		increment and decrement operations.
 	@index, @stindex, @atan2, @lookup  functions.
 	Save/restore options.
@@ -1972,11 +1976,11 @@ Peter King -
 		in several locations)
 	Forwrow, backrow, forwcol, backcol functions to replace
 		repeated code
-	Correct interpretation of ESCAPE or ^G as an abort when in a 
+	Correct interpretation of ESCAPE or ^G as an abort when in a
 		two character command such as 'ar' or 'ac'
 	Cleanup in eval() - catches non-trap function errors.
 
-Bob Bond - 
+Bob Bond -
        Added search options to "g".
        Added supression of hidden columns to "W"
        Added the mod operator "%"

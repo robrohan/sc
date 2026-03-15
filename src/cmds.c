@@ -37,6 +37,7 @@
 #endif
 
 void	syncref(register struct enode *e);
+void	yankr(struct ent *v1, struct ent *v2);
 void	unspecial(FILE *f, char *str, int delim);
 
 /* a linked list of free [struct ent]'s, uses .next as the pointer */
@@ -1468,7 +1469,7 @@ doformat(int c1, int c2, int w, int p, int r)
 }
 
 void
-formatcol(arg)
+formatcol(int arg)
 {
     int c, i;
     int mf = modflg;
@@ -1603,7 +1604,7 @@ formatcol(arg)
 }
 
 void
-ljustify(sr, sc, er, ec)
+ljustify(int sr, int sc, int er, int ec)
 {
     struct ent *p;
     int i, j;
@@ -1632,7 +1633,7 @@ ljustify(sr, sc, er, ec)
 }
 
 void
-rjustify(sr, sc, er, ec)
+rjustify(int sr, int sc, int er, int ec)
 {
     struct ent *p;
     int i, j;
@@ -1661,7 +1662,7 @@ rjustify(sr, sc, er, ec)
 }
 
 void
-center(sr, sc, er, ec)
+center(int sr, int sc, int er, int ec)
 {
     struct ent *p;
     int i, j;
@@ -2861,12 +2862,12 @@ writefile(char *fname, int r0, int c0, int rn, int cn)
 	if ((plugin = findplugin(p+1, 'w')) != NULL) {
 	    if (!plugin_exists(plugin, strlen(plugin), save + 1)) {
 		error("plugin not found");
-		return;
+		return -1;
 	    }
 	    *save = '|';
 	    if ((strlen(save) + strlen(fname) + 20) > PATHLEN) {
 		error("Path too long");
-		return;
+		return -1;
 	    }
 	    sprintf(save + strlen(save), " %s%d:", coltoa(c0), r0);
 	    sprintf(save + strlen(save), "%s%d \"%s\"", coltoa(cn), rn, fname);
@@ -2981,12 +2982,12 @@ readfile(char *fname, int eraseflg)
 	if ((plugin = findplugin(p+1, 'r')) != NULL) {
 	    if (!(plugin_exists(plugin, strlen(plugin), save + 1))) {
 		error("plugin not found");
-		return;
+		return -1;
 	    }
 	    *save = '|';
 	    if ((strlen(save) + strlen(fname) + 2) > PATHLEN) {
 		error("Path too long");
-		return;
+		return -1;
 	    }
 	    sprintf(save + strlen(save), " \"%s\"", fname);
 	    eraseflg = 0;
