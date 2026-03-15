@@ -1,5 +1,7 @@
 # SC - the Terminal based Spread Sheet Calculator
 
+[![Build](https://github.com/robrohan/sc/actions/workflows/build.yaml/badge.svg)](https://github.com/robrohan/sc/actions/workflows/build.yaml)
+
 `sc` can be accessed through a terminal emulator, and has a simple interface
 and keyboard shortcuts resembling the key bindings of the Vim text editor.
 
