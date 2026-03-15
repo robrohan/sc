@@ -26,7 +26,7 @@ through a series of maintainers, each adding features and fixing bugs:
   improved vi compatibility, and much more. His philosophy was to keep sc
   focused — one thing done well — rather than accumulate features for their
   own sake.
-- **Rob Rohan** picked up the project to port it to modern macOS (Apple
+- **Rob Rohan** (using Claude Code) ported it to modern macOS (Apple
   Silicon), fixing C99/clang compliance issues for the 8.0 release.
 
 ## Authors
@@ -43,6 +43,7 @@ through a series of maintainers, each adding features and fixing bugs:
 | Jeff Buhrt | Contributions and testing |
 | Eric Putz | Contributions and testing |
 | Chuck Martin | Maintainer, versions 6.1–7.16 (2001–2002) |
+| Claude Code | macOS/Apple Silicon port, version 8.0 |
 | Rob Rohan | macOS/Apple Silicon port, version 8.0 |
 
 ## Manual
@@ -66,13 +67,13 @@ This is usually a `$TERM` mismatch. Check what your terminal reports:
 echo $TERM
 ```
 
-If you are running inside **tmux**, it typically sets `TERM=tmux-256color`, which may not have a complete terminfo entry on all systems. To test, launch sc with:
+If you are running inside **tmux** (which typically sets `TERM=tmux-256color`) `sc` may not have a complete terminfo entry on all systems. To test, launch sc with:
 
 ```sh
 TERM=xterm-256color sc
 ```
 
-If that fixes it, add one of the following to your `~/.tmux.conf`:
+If that fixes it, you can add one of the following to your `~/.tmux.conf`:
 
 ```
 # Option A — use xterm-256color inside tmux sessions
@@ -84,4 +85,5 @@ set -ag terminal-overrides ",tmux-256color:RGB"
 ```
 
 Then restart tmux for the change to take effect.
+
 
