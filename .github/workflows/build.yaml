@@ -39,5 +39,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sc-${{ matrix.artifact }}
-          path: bin/${{ matrix.artifact }}/
+          path: bin/${{ matrix.artifact }}/sc/
           if-no-files-found: error

@@ -5,7 +5,7 @@ else
 	PLATFORM := linux
 endif
 
-BINDIR := bin/$(PLATFORM)
+BINDIR := bin/$(PLATFORM)/sc
 
 .PHONY: all clean distclean install uninstall
 
