@@ -784,7 +784,7 @@ eval(register struct enode *e)
 	case '!':	return (eval(e->e.o.left) == 0.0);
 	case ';':	return (((int)eval(e->e.o.left) & 7) +
 				(((int)eval(e->e.o.right) & 7) << 3));
-	case O_CONST:	if (!finite(e->e.k)) {
+	case O_CONST:	if (!isfinite(e->e.k)) {
 			    e->op = ERR_;
 			    e->e.k = (double) 0;
 			    cellerror = CELLERROR;
@@ -1480,7 +1480,7 @@ RealEvalOne(register struct ent *p, int i, int j, int *chgct)
 	} else {
 	    cellerror = CELLOK;
 	    v = eval(p->expr);
-	    if (cellerror == CELLOK && !finite(v))
+	    if (cellerror == CELLOK && !isfinite(v))
 		cellerror = CELLERROR;
 	}
 	if ((cellerror != p->cellerror) || (v != p->v)) {

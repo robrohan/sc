@@ -16,6 +16,8 @@
 #endif
 #endif
 
+#include <curses.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>

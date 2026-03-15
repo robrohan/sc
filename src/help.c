@@ -7,6 +7,7 @@
 
 #ifdef QREF
 #include <stdio.h>
+#include <stdlib.h>
 char	*header = " Quick Reference";
 char	*revision = "$Revision: 7.16 $";
 #else

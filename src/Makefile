@@ -73,7 +73,7 @@ IEEE_MATH=
 # and potentially other similar problems due to FPU registers having greater
 # precision than doubles in memory.  This is known to be necessary for GCC
 # on x86 processors/FPUs, and probably others.
-FLOAT_STORE=-ffloat-store
+FLOAT_STORE=
 
 # Set RINT=-DRINT if you do not have rint() in math.h
 # Set RINT=	on/with (they have rint):

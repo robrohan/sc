@@ -15,7 +15,10 @@
 
 #ifdef MSDOS
 #include <stdio.h>
+#endif
 #include <unistd.h>
+#ifndef PSC
+#include <curses.h>
 #endif
 
 #define	ATBL(tbl, row, col)	(*(tbl + row) + (col))
@@ -394,6 +397,7 @@ extern	char *seval(register struct enode *se);
 extern	char *v_name(int row, int col);
 extern	double eval(register struct enode *e);
 extern	int any_locked_cells(int r1, int c1, int r2, int c2);
+int are_abbrevs(void);
 extern	int are_colors();
 extern	int are_frames();
 extern	int are_ranges();
@@ -511,6 +515,9 @@ extern	void kbd_again();
 extern	void label(register struct ent *v, register char *s, int flushdir);
 extern	void let(struct ent *v, struct enode *e);
 extern	void list_colors(FILE *f);
+extern	void list_frames(FILE *f);
+extern	void gotonote();
+extern	void repaint(int x, int y, int len, int attron, int attroff);
 extern	void list_ranges(FILE *f);
 extern	void lock_cells(struct ent *v1, struct ent *v2);
 extern	void markcell();
@@ -564,6 +571,18 @@ extern	void write_hist();
 extern	void write_line(int c);
 extern	void write_ranges(FILE *f);
 extern	void yank_area(int sr, int sc, int er, int ec);
+extern	void yankr(struct ent *v1, struct ent *v2);
+extern	void yankrow(int arg);
+extern	void yankcol(int arg);
+extern	void ljustify(int sr, int sc, int er, int ec);
+extern	void rjustify(int sr, int sc, int er, int ec);
+extern	void center(int sr, int sc, int er, int ec);
+extern	void add_abbr(char *string);
+extern	void getframe(int fd);
+extern	void getrange(char *name, int fd);
+extern	void doeval(struct enode *e, char *fmt, int row, int col, int fd);
+extern	void doseval(struct enode *e, int row, int col, int fd);
+extern	void dogetkey();
 extern	void yyerror(char *err);
 extern	int yylex();
 extern	int yyparse();
