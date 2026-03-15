@@ -42,8 +42,8 @@ sortrange(struct ent *left, struct ent *right, char *criteria)
     maxr = left->row > right->row ? left->row : right->row;
     maxc = left->col > right->col ? left->col : right->col;
 
-    sort = (struct sortcrit *)scxmalloc((2 * sizeof(struct sortcrit)));
-    rows = (int *)scxmalloc((maxr - minr + 1) * sizeof(int));
+    sort = (struct sortcrit *)(void *)scxmalloc((unsigned)(2 * sizeof(struct sortcrit)));
+    rows = (int *)(void *)scxmalloc((unsigned)((size_t)(maxr - minr + 1) * sizeof(int)));
     for (r = minr, c = 0; r <= maxr; r++, c++)
 	rows[c] = r;
 
@@ -58,8 +58,8 @@ sortrange(struct ent *left, struct ent *right, char *criteria)
     } else
 	for (howmany = 0; criteria[cp]; howmany++) {
 	    if (howmany > 1)
-		sort = (struct sortcrit *)scxrealloc((char *)sort,
-			(howmany + 1) * (sizeof(struct sortcrit)));
+		sort = (struct sortcrit *)(void *)scxrealloc((char *)sort,
+			(unsigned)((size_t)(howmany + 1) * sizeof(struct sortcrit)));
 	    switch (criteria[cp++]) {
 		case '+':
 		    sort[howmany].direction = 1;
@@ -97,7 +97,7 @@ sortrange(struct ent *left, struct ent *right, char *criteria)
 	    }
 	}
 
-    qsort(rows, maxr - minr + 1, sizeof(int), compare);
+    qsort(rows, (size_t)(maxr - minr + 1), sizeof(int), compare);
     erase_area(minr, minc, maxr, maxc, 1);
     sync_ranges();
     for (c = 0, p = delbuf[dbidx]; p; p = p->next) {
@@ -108,7 +108,7 @@ sortrange(struct ent *left, struct ent *right, char *criteria)
 		return;
 	    }
 	}
-	p->row = minr + c;
+	p->row = (short)(minr + c);
     }
     scxfree((char *)sort);
     scxfree((char *)rows);
@@ -136,8 +136,8 @@ compare(const void *row1, const void *row2)
     int i;
 
     for (i = 0; !result && i < howmany; i++) {
-	p1 = *ATBL(tbl, *((int *) row1), sort[i].column);
-	p2 = *ATBL(tbl, *((int *) row2), sort[i].column);
+	p1 = *ATBL(tbl, *((const int *)(const void *) row1), sort[i].column);
+	p2 = *ATBL(tbl, *((const int *)(const void *) row2), sort[i].column);
 
 	if (sort[i].type) {
 	    if (p1 && p1->label)
@@ -161,7 +161,7 @@ compare(const void *row1, const void *row2)
     }
 
     if (!result)
-	result = (*((int *) row1) - *((int *) row2));
+	result = (*((const int *)(const void *) row1) - *((const int *)(const void *) row2));
 
     return (result);
 }

@@ -68,13 +68,16 @@ extern YYSTYPE yylval;
 jmp_buf wakeup;
 jmp_buf fpe_buf;
 
-bool decimal = FALSE;
+int decimal = 0;
 
 #ifdef SIGVOID
-void
+static void
+#else
+static int
 #endif
 fpe_trap(int signo)
 {
+    (void)signo;
 #if defined(i386) && !defined(M_XENIX)
     asm("	fnclex");
     asm("	fwait");
@@ -105,7 +108,7 @@ struct key statres[] = {
 };
 
 int
-yylex()
+yylex(void)
 {
     char *p = line + linelim;
     int ret;
@@ -192,17 +195,13 @@ yylex()
 		    ret = PLUGIN;
 		} else {
 		    scxfree(path);
-		    linelim = p-line;
+		    linelim = (int)(p-line);
 		    yyerror("Unintelligible word");
 		}
 	    }
 	}
     } else if ((*p == '.') || isdigit(*p)) {
-#ifdef SIGVOID
-	void (*sig_save)();
-#else
-	int (*sig_save)();
-#endif
+	void (*sig_save)(int);
 	double v = 0.0;
 	int temp;
 	char *nstart = p;
@@ -245,12 +244,12 @@ yylex()
 		} else if (*p == 'e' || *p == 'E') {
 		    while (isdigit(*++p)) /* */;
 		    if (isalpha(*p) || *p == '_') {
-			linelim = p - line;
+			linelim = (int)(p - line);
 			return (yylex());
 		    } else
 			ret = FNUMBER;
 		} else if (isalpha(*p) || *p == '_') {
-		    linelim = p - line;
+		    linelim = (int)(p - line);
 		    return (yylex());
 		}
 	    }
@@ -300,11 +299,11 @@ yylex()
 	    p++;
 	if (*p)
 	    p++;
-	linelim = p-line;
+	linelim = (int)(p-line);
 	tokenst = NULL;
 	return yylex();
     } else ret = *p++;
-    linelim = p-line;
+    linelim = (int)(p-line);
     if (!isfunc) isfunc = ((ret == '@') + (ret == S_GOTO) - (ret == S_SET));
     if (ret == S_GOTO) isgoto = TRUE;
     tokenst = NULL;
@@ -327,7 +326,7 @@ plugin_exists(char *name, int len, char *path)
 	strcpy((char *)path, HomeDir);
 	strcat((char *)path, "/.sc/plugins/");
 	strncat((char *)path, name, len);
-	if (fp = fopen((char *)path, "r")) {
+	if ((fp = fopen((char *)path, "r")) != NULL) {
 	    fclose(fp);
 	    return 1;
 	}
@@ -335,7 +334,7 @@ plugin_exists(char *name, int len, char *path)
     strcpy((char *)path, LIBDIR);
     strcat((char *)path, "/plugins/");
     strncat((char *)path, name, len);
-    if (fp = fopen((char *)path, "r")) {
+    if ((fp = fopen((char *)path, "r")) != NULL) {
 	fclose(fp);
 	return 1;
     }
@@ -369,21 +368,21 @@ atocol(char *string, int len)
 #ifdef SIMPLE
 
 void
-initkbd()
+initkbd(void)
 {}
 
 void
-kbd_again()
+kbd_again(void)
 {}
 
 void
-resetkbd()
+resetkbd(void)
 {}
 
 #ifndef VMS
 
 int
-nmgetch()
+nmgetch(void)
 {
     return (getchar());
 }
@@ -491,7 +490,7 @@ charout(int c)
 }
 
 void
-initkbd()
+initkbd(void)
 {
     register struct key_map *kp;
     register i,j;
@@ -549,7 +548,7 @@ initkbd()
 }
 
 void
-kbd_again()
+kbd_again(void)
 {
     if (ks) 
 	tputs(ks, 1, charout);
@@ -560,7 +559,7 @@ kbd_again()
 }
 
 void
-resetkbd()
+resetkbd(void)
 {
     if (ke) 
 	tputs(ke, 1, charout);
@@ -584,9 +583,9 @@ nmgetch()
     static char *dumpindex;
 
 #ifdef SIGVOID
-    void time_out();
+    void time_out(int);
 #else
-    int time_out();
+    int time_out(int);
 #endif
 
     if (dumpindex && *dumpindex)
@@ -646,28 +645,28 @@ nmgetch()
 #if defined(SYSV2) || defined(SYSV3) || defined(MSDOS)
 
 void
-initkbd()
+initkbd(void)
 {
     keypad(stdscr, TRUE);
     notimeout(stdscr,TRUE);
 }
 
 void
-kbd_again()
+kbd_again(void)
 {
     keypad(stdscr, TRUE);
     notimeout(stdscr,TRUE);
 }
 
 void
-resetkbd()
+resetkbd(void)
 {
     keypad(stdscr, FALSE);
     notimeout(stdscr, FALSE);
 }
 
 int
-nmgetch()
+nmgetch(void)
 {
     register int c;
 
@@ -718,5 +717,6 @@ int
 #endif
 time_out(int signo)
 {
+    (void)signo;
     longjmp(wakeup, 1);
 }

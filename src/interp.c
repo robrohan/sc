@@ -54,14 +54,14 @@ extern char *re_comp(char *s);
 extern char *re_exec(char *s);
 #endif
 #ifdef REGCMP
-char *regcmp();
-char *regex();
+char *regcmp(void);
+char *regex(void);
 #endif
 
 #ifdef SIGVOID
-    void doquit();
+    void doquit(int);
 #else
-    int doquit();
+    int doquit(int);
 #endif
 
 /* Use this structure to save the last 'g' command */
@@ -86,16 +86,16 @@ int	gmyrow, gmycol;	/* globals used to implement @myrow, @mycol cmds */
 int	rowoffset = 0, coloffset = 0;	/* row & col offsets for range
 					   functions */
 
-extern bool decimal;	/* Set if there was a decimal point in the number */
+extern int decimal;	/* Set if there was a decimal point in the number */
 
 /* a linked list of free [struct enodes]'s, uses .e.o.left as the pointer */
 struct enode *freeenodes = NULL;
 
 double	dolookup(struct enode * val, int minr, int minc, int maxr,
 	int maxc, int offr, int offc);
-double	fn1_eval(double (*fn)(), double arg);
-double	fn2_eval(double (*fn)(), double arg1, double arg2);
-int	RealEvalAll();
+static double	fn1_eval(double (*fn)(double), double farg);
+static double	fn2_eval(double (*fn)(double, double), double arg1, double arg2);
+static int	RealEvalAll(void);
 int	constant(register struct enode *e);
 void	RealEvalOne(register struct ent *p, int i, int j, int *chgct);
 void	copydbuf(int deltar, int deltac);
@@ -117,7 +117,7 @@ int	cellerror = CELLOK;	/* is there an error in this cell */
 #define dtr(x) ((x)*(M_PI/(double)180.0))
 #define rtd(x) ((x)*(180.0/(double)M_PI))
 
-double
+static double
 finfunc(int fun, double v1, double v2, double v3)
 {
  	double answer,p;
@@ -126,7 +126,7 @@ finfunc(int fun, double v1, double v2, double v3)
  
  	switch (fun) {
  	    case PV:
-		if (v2)
+		if (v2 != 0.0)
 		    answer = v1 * (1 - 1/p) / v2;
 		else {
 		    cellerror = CELLERROR;
@@ -134,7 +134,7 @@ finfunc(int fun, double v1, double v2, double v3)
 		}
  		break;
  	    case FV:
-		if (v2)
+		if (v2 != 0.0)
 		    answer = v1 * (p - 1) / v2;
 		else {
 		    cellerror = CELLERROR;
@@ -143,7 +143,7 @@ finfunc(int fun, double v1, double v2, double v3)
  		break;
  	    case PMT:
 		/* CHECK IF ~= 1 - 1/1 */
-		if (p && p != (double)1)
+		if (p != 0.0 && p != (double)1)
 		    answer = v1 * v2 / (1 - 1/p);
 		else {
 		    cellerror = CELLERROR;
@@ -159,7 +159,7 @@ finfunc(int fun, double v1, double v2, double v3)
 	return (answer);
 }
 
-char *
+static char *
 dostindex(int minr, int minc, int maxr, int maxc, struct enode *val)
 {
     int r, c;
@@ -181,7 +181,7 @@ dostindex(int minr, int minc, int maxr, int maxc, struct enode *val)
 	p = *ATBL(tbl, r, c);
 
     if (p && p->label) {
-	pr = scxmalloc((size_t)(strlen(p->label)+1));
+	pr = scxmalloc((unsigned)(strlen(p->label)+1));
 	(void) strcpy(pr, p->label);
 	if (p->cellerror)
 	    cellerror = CELLINVALID;
@@ -190,7 +190,7 @@ dostindex(int minr, int minc, int maxr, int maxc, struct enode *val)
 	return ((char *)0);
 }
 
-double
+static double
 doindex(int minr, int minc, int maxr, int maxc, struct enode *val)
 {
     int r, c;
@@ -278,7 +278,7 @@ dolookup(struct enode * val, int minr, int minc, int maxr, int maxc, int offset,
     return ret;
 }
 
-double
+static double
 docount(int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     int v;
@@ -293,7 +293,7 @@ docount(int minr, int minc, int maxr, int maxc, struct enode *e)
 		rowoffset = r - minr;
 		coloffset = c - minc;
 	    }
-	    if (!e || eval(e))
+	    if (!e || eval(e) != 0.0)
 		if ((p = *ATBL(tbl, r, c)) && p->flags & is_valid) {
 		    if (p->cellerror)
 			cellerr = CELLINVALID;
@@ -305,7 +305,7 @@ docount(int minr, int minc, int maxr, int maxc, struct enode *e)
     return v;
 }
 
-double
+static double
 dosum(int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v;
@@ -320,7 +320,7 @@ dosum(int minr, int minc, int maxr, int maxc, struct enode *e)
 		rowoffset = r - minr;
 		coloffset = c - minc;
 	    }
-	    if (!e || eval(e))
+	    if (!e || eval(e) != 0.0)
 		if ((p = *ATBL(tbl, r, c)) && p->flags & is_valid) {
 		    if (p->cellerror)
 			cellerr = CELLINVALID;
@@ -332,7 +332,7 @@ dosum(int minr, int minc, int maxr, int maxc, struct enode *e)
     return v;
 }
 
-double
+static double
 doprod(int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v;
@@ -347,7 +347,7 @@ doprod(int minr, int minc, int maxr, int maxc, struct enode *e)
 		rowoffset = r - minr;
 		coloffset = c - minc;
 	    }
-	    if (!e || eval(e))
+	    if (!e || eval(e) != 0.0)
 		if ((p = *ATBL(tbl, r, c)) && p->flags & is_valid) {
 		    if (p->cellerror)
 			cellerr = CELLINVALID;
@@ -359,7 +359,7 @@ doprod(int minr, int minc, int maxr, int maxc, struct enode *e)
     return v;
 }
 
-double
+static double
 doavg(int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v;
@@ -376,7 +376,7 @@ doavg(int minr, int minc, int maxr, int maxc, struct enode *e)
 		rowoffset = r - minr;
 		coloffset = c - minc;
 	    }
-	    if (!e || eval(e))
+	    if (!e || eval(e) != 0.0)
 		if ((p = *ATBL(tbl, r, c)) && p->flags&is_valid) {
 		    if (p->cellerror)
 			cellerr = CELLINVALID;
@@ -394,7 +394,7 @@ doavg(int minr, int minc, int maxr, int maxc, struct enode *e)
     return (v / (double)count);
 }
 
-double
+static double
 dostddev(int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double lp, rp, v, nd;
@@ -412,7 +412,7 @@ dostddev(int minr, int minc, int maxr, int maxc, struct enode *e)
 		rowoffset = r - minr;
 		coloffset = c - minc;
 	    }
-	    if (!e || eval(e))
+	    if (!e || eval(e) != 0.0)
 		if ((p = *ATBL(tbl, r, c)) && p->flags&is_valid) {
 		    if (p->cellerror)
 			cellerr = CELLINVALID;
@@ -432,7 +432,7 @@ dostddev(int minr, int minc, int maxr, int maxc, struct enode *e)
     return (sqrt((nd*lp-rp*rp)/(nd*(nd-1))));
 }
 
-double
+static double
 domax(int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v = (double)0;
@@ -448,7 +448,7 @@ domax(int minr, int minc, int maxr, int maxc, struct enode *e)
 		rowoffset = r - minr;
 		coloffset = c - minc;
 	    }
-	    if (!e || eval(e))
+	    if (!e || eval(e) != 0.0)
 		if ((p = *ATBL(tbl, r, c)) && p->flags&is_valid) {
 		    if (p->cellerror)
 			cellerr = CELLINVALID;
@@ -469,7 +469,7 @@ domax(int minr, int minc, int maxr, int maxc, struct enode *e)
     return (v);
 }
 
-double
+static double
 domin(int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v = (double)0;
@@ -485,7 +485,7 @@ domin(int minr, int minc, int maxr, int maxc, struct enode *e)
 		rowoffset = r - minr;
 		coloffset = c - minc;
 	    }
-	    if (!e || eval(e))
+	    if (!e || eval(e) != 0.0)
 		if ((p = *ATBL(tbl, r, c)) && p->flags&is_valid) {
 		    if (p->cellerror)
 			cellerr = CELLINVALID;
@@ -508,7 +508,7 @@ domin(int minr, int minc, int maxr, int maxc, struct enode *e)
 
 int mdays[12]={ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-double
+static double
 dodts(int e1, int e2, int e3)
 {
     int		yr, mo, day;
@@ -542,7 +542,7 @@ dodts(int e1, int e2, int e3)
     return ((double)secs);
 }
 
-double
+static double
 dotts(int hr, int min, int sec)
 {
     if (hr < 0 || hr > 23 || min < 0 || min > 59 || sec < 0 || sec > 59) {
@@ -553,7 +553,7 @@ dotts(int hr, int min, int sec)
     return ((double)(sec+min*60+hr*3600));
 }
 
-double
+static double
 dotime(int which, double when)
 {
 	static time_t t_cache;
@@ -587,7 +587,7 @@ dotime(int which, double when)
 	return ((double)0);
 }
 
-double
+static double
 doston(char *s)
 {
     double v;
@@ -600,7 +600,7 @@ doston(char *s)
     return(v);
 }
 
-double
+static double
 doeqs(char *s1, char *s2)
 {
     double v;
@@ -631,7 +631,7 @@ doeqs(char *s1, char *s2)
  * Use only the integer part of the column number.  Always free the string.
  */
 
-struct ent *
+static struct ent *
 getent(char *colstr, double rowdoub)
 {
     int collen;		/* length of string */
@@ -645,7 +645,7 @@ getent(char *colstr, double rowdoub)
 
     if (((row = (int) floor(rowdoub)) >= 0)
 	    && (row < maxrows)				/* in range */
-	    && ((collen = strlen (colstr)) <= 2)	/* not too long */
+	    && ((collen = (int)strlen (colstr)) <= 2)	/* not too long */
 	    && ((col = atocol (colstr, collen)) >= 0)
 	    && (col < maxcols)) {			/* in range */
 	p = *ATBL(tbl, row, col);
@@ -662,7 +662,7 @@ getent(char *colstr, double rowdoub)
  * number, return the selected cell's numeric value, if any.
  */
 
-double
+static double
 donval(char *colstr, double rowdoub)
 {
     struct ent *ep;
@@ -677,7 +677,7 @@ donval(char *colstr, double rowdoub)
  *	The left pointer is a chain of ELIST nodes, the right pointer
  *	is a value.
  */
-double
+static double
 dolmax(struct enode *ep)
 {
     register int count = 0;
@@ -695,7 +695,7 @@ dolmax(struct enode *ep)
     else return (double)0;
 }
 
-double
+static double
 dolmin(struct enode *ep)
 {
     register int count = 0;
@@ -737,7 +737,7 @@ eval(register struct enode *e)
 			    cellerror = CELLINVALID;
 			    return ((double) 0);
 			} else
-			if (denom)
+			if (denom != 0.0)
 			    return (num/denom);
 			else {
 			    cellerror = CELLERROR;
@@ -748,7 +748,7 @@ eval(register struct enode *e)
 			double num, denom;
 			num = floor(eval(e->e.o.left));
 			denom = floor(eval(e->e.o.right));
-			if (denom)
+			if (denom != 0.0)
 			    return (num - floor(num/denom)*denom);
 			else {
 			    cellerror = CELLERROR;
@@ -764,10 +764,10 @@ eval(register struct enode *e)
 			return (l == r);
 			}
 	case '>':	return (eval(e->e.o.left) > eval(e->e.o.right));
-	case '&':	return (eval(e->e.o.left) && eval(e->e.o.right));
-	case '|':	return (eval(e->e.o.left) || eval(e->e.o.right));
+	case '&':	return (eval(e->e.o.left) != 0.0 && eval(e->e.o.right) != 0.0);
+	case '|':	return (eval(e->e.o.left) != 0.0 || eval(e->e.o.right) != 0.0);
 	case IF:
-	case '?':	return eval(e->e.o.left) ? eval(e->e.o.right->e.o.left)
+	case '?':	return eval(e->e.o.left) != 0.0 ? eval(e->e.o.right->e.o.left)
 						: eval(e->e.o.right->e.o.right);
 	case 'm':	return (-eval(e->e.o.left));
 	case 'f':	{
@@ -900,12 +900,12 @@ eval(register struct enode *e)
 		return (temp - floor(temp) < 0.5 ? floor(temp) : ceil(temp));
 	    }
  	case ROUND:
-	    {	int precision = (int) eval(e->e.o.right);
+	    {	int prec = (int) eval(e->e.o.right);
 		double scale = 1;
-		if (0 < precision)
-		    do scale *= 10; while (0 < --precision);
-		else if (precision < 0)
-		    do scale /= 10; while (++precision < 0);
+		if (0 < prec)
+		    do scale *= 10; while (0 < --prec);
+		else if (prec < 0)
+		    do scale /= 10; while (++prec < 0);
 
 		if (rndtoeven)
 		    return (rint(eval(e->e.o.left) * scale) / scale);
@@ -968,12 +968,13 @@ eval(register struct enode *e)
 }
 
 #ifdef SIGVOID
-void
+static void
 #else
-int
+static int
 #endif
-eval_fpe() /* Trap for FPE errors in eval */
+eval_fpe(int signum) /* Trap for FPE errors in eval */
 {
+    (void)signum;
 #if defined(i386) && !defined(M_XENIX)
     asm("	fnclex");
     asm("	fwait");
@@ -990,20 +991,20 @@ eval_fpe() /* Trap for FPE errors in eval */
     longjmp(fpe_save, 1);
 }
 
-double
-fn1_eval(double (*fn)(), double arg)
+static double
+fn1_eval(double (*fn)(double), double farg)
 {
     double res;
     errno = 0;
-    res = (*fn)(arg);
+    res = (*fn)(farg);
     if (errno)
 	cellerror = CELLERROR;
 
     return res;
 }
 
-double
-fn2_eval(double (*fn)(), double arg1, double arg2)
+static double
+fn2_eval(double (*fn)(double, double), double arg1, double arg2)
 {
     double res;
     errno = 0;
@@ -1020,7 +1021,7 @@ fn2_eval(double (*fn)(), double arg1, double arg2)
  * All returned strings are assumed to be xalloced.
  */
 
-char *
+static char *
 docat(register char *s1, register char *s2)
 {
     register char *p;
@@ -1030,7 +1031,7 @@ docat(register char *s1, register char *s2)
 	return ((char *)0);
     arg1 = s1 ? s1 : "";
     arg2 = s2 ? s2 : "";
-    p = scxmalloc((size_t)(strlen(arg1)+strlen(arg2)+1));
+    p = scxmalloc((unsigned)(strlen(arg1)+strlen(arg2)+1));
     (void) strcpy(p, arg1);
     (void) strcat(p, arg2);
     if (s1)
@@ -1040,7 +1041,7 @@ docat(register char *s1, register char *s2)
     return (p);
 }
 
-char *
+static char *
 dodate(time_t tloc, char *fmtstr)
 {
     char buff[FBUFLEN];
@@ -1049,13 +1050,13 @@ dodate(time_t tloc, char *fmtstr)
     if (!fmtstr)
 	fmtstr = "%a %b %d %H:%M:%S %Y";
     strftime(buff, FBUFLEN, fmtstr, localtime(&tloc));
-    p = scxmalloc((size_t)(strlen(buff)+1));
+    p = scxmalloc((unsigned)(strlen(buff)+1));
     (void) strcpy(p, buff);
     return (p);
 }
 
 
-char *
+static char *
 dofmt(char *fmtstr, double v)
 {
     char buff[FBUFLEN];
@@ -1064,7 +1065,7 @@ dofmt(char *fmtstr, double v)
     if (!fmtstr)
 	return ((char *)0);
     (void) snprintf(buff, FBUFLEN, fmtstr, v);
-    p = scxmalloc((size_t)(strlen(buff)+1));
+    p = scxmalloc((unsigned)(strlen(buff)+1));
     (void) strcpy(p, buff);
     scxfree(fmtstr);
     return (p);
@@ -1082,7 +1083,7 @@ dofmt(char *fmtstr, double v)
  */
 
 #if defined(VMS) || defined(MSDOS)
-char *
+static char *
 doext(struct enode *se)
 {
     char *command = seval(se->e.o.left);
@@ -1092,12 +1093,12 @@ doext(struct enode *se)
     cellerror = CELLERROR;	/* not sure if this should be a cellerror */
     if (command)
 	scxfree(command);
-    return (strcpy(scxmalloc((size_t) 1), "\0"));
+    return (strcpy(scxmalloc((unsigned) 1), "\0"));
 }
 
 #else /* VMS */
 
-char *
+static char *
 doext(struct enode *se)
 {
     char buff[FBUFLEN];		/* command line/return, not permanently alloc */
@@ -1141,7 +1142,7 @@ doext(struct enode *se)
 			*cp = '\0';			/* end string there */
 
 		    if (!se->e.o.s || strlen(buff) != strlen(se->e.o.s))
-			se->e.o.s = scxrealloc(se->e.o.s, strlen(buff));
+			se->e.o.s = scxrealloc(se->e.o.s, (unsigned)strlen(buff));
 		    (void) strcpy (se->e.o.s, buff);
 			 /* save alloc'd copy */
 		}
@@ -1151,9 +1152,9 @@ doext(struct enode *se)
 	} /* else */
     } /* else */
     if (se->e.o.s)
-	return (strcpy(scxmalloc((size_t) (strlen(se->e.o.s)+1)), se->e.o.s));
+	return (strcpy(scxmalloc((unsigned) (strlen(se->e.o.s)+1)), se->e.o.s));
     else
-	return (strcpy(scxmalloc((size_t)1), ""));
+	return (strcpy(scxmalloc((unsigned)1), ""));
 }
 
 #endif /* VMS */
@@ -1166,14 +1167,14 @@ doext(struct enode *se)
  * the expression is saved in a file, etc.
  */
 
-char *
+static char *
 dosval(char *colstr, double rowdoub)
 {
     struct ent *ep;
     char *llabel;
 
     llabel = (ep = getent(colstr, rowdoub)) ? (ep -> label) : "";
-    return (strcpy(scxmalloc((size_t) (strlen(llabel) + 1)), llabel));
+    return (strcpy(scxmalloc((unsigned) (strlen(llabel) + 1)), llabel));
 }
 
 
@@ -1182,7 +1183,7 @@ dosval(char *colstr, double rowdoub)
  * when calling this routine.
  */
 
-char *
+static char *
 dosubstr(char *s, register int v1, register int v2)
 {
     register char *s1, *s2;
@@ -1191,16 +1192,16 @@ dosubstr(char *s, register int v1, register int v2)
     if (!s)
 	return ((char *)0);
 
-    if (v2 >= strlen(s))		/* past end */
-	v2 =  strlen(s) - 1;		/* to end   */
+    if (v2 >= (int)strlen(s))		/* past end */
+	v2 = (int)strlen(s) - 1;		/* to end   */
 
     if (v1 < 0 || v1 > v2) {		/* out of range, return null string */
 	scxfree(s);
-	p = scxmalloc((size_t)1);
+	p = scxmalloc((unsigned)1);
 	p[0] = '\0';
 	return (p);
     }
-    s2 = p = scxmalloc((size_t)(v2-v1+2));
+    s2 = p = scxmalloc((unsigned)(v2-v1+2));
     s1 = &s[v1];
     for (; v1 <= v2; s1++, s2++, v1++)
 	*s2 = *s1;
@@ -1213,7 +1214,7 @@ dosubstr(char *s, register int v1, register int v2)
  * character casing: make upper case, make lower case
  */
 
-char *
+static char *
 docase(int acase, char *s)
 {
     char *p = s;
@@ -1224,14 +1225,14 @@ docase(int acase, char *s)
     if( acase == UPPER ) {
         while( *p != '\0' ) {
            if( islower(*p) )
-		*p = toupper(*p);
+		*p = (char)toupper(*p);
 	   p++;
 	}
     }
     else if (acase == LOWER) {
 	while (*p != '\0') {
 	    if (isupper(*p))
-		*p = tolower(*p);
+		*p = (char)tolower(*p);
 	    p++;
 	}
     }
@@ -1245,7 +1246,7 @@ docase(int acase, char *s)
  * if the string is all upper we will lower rest of words.
  */
 
-char *
+static char *
 docapital(char *s)
 {
     char *p;
@@ -1263,11 +1264,11 @@ docapital(char *s)
 	if (skip == 1) {
 	    skip = 0;
 	    if (islower(*p))
-		*p = toupper(*p);
+		*p = (char)toupper(*p);
 	}
 	else	/* if the string was all upper before */
         if (isupper(*p) && AllUpper != 0)
-	    *p = tolower(*p);
+	    *p = (char)tolower(*p);
     }
     return (s);
 }
@@ -1279,7 +1280,7 @@ seval(register struct enode *se)
 
     if (se == (struct enode *)0) return (char *)0;
     switch (se->op) {
-	case O_SCONST: p = scxmalloc((size_t)(strlen(se->e.s)+1));
+	case O_SCONST: p = scxmalloc((unsigned)(strlen(se->e.s)+1));
 		     (void) strcpy(p, se->e.s);
 		     return (p);
 	case O_VAR:    {
@@ -1295,7 +1296,7 @@ seval(register struct enode *se)
 			}
 			if (!vp || !vp->label)
 			    return (NULL);
-			p = scxmalloc((size_t)(strlen(vp->label)+1));
+			p = scxmalloc((unsigned)(strlen(vp->label)+1));
 			(void) strcpy(p, vp->label);
 			return (p);
 	}
@@ -1312,7 +1313,7 @@ seval(register struct enode *se)
 		     }
 	case 'F':    return (seval(se->e.o.left));
 	case IF:
-	case '?':    return (eval(se->e.o.left) ? seval(se->e.o.right->e.o.left)
+	case '?':    return (eval(se->e.o.left) != 0.0 ? seval(se->e.o.right->e.o.left)
 					     : seval(se->e.o.right->e.o.right));
 	case DATE:   return (dodate((time_t)(eval(se->e.o.left)),
 				 seval(se->e.o.right)));
@@ -1337,14 +1338,14 @@ seval(register struct enode *se)
 	case SUBSTR: return (dosubstr(seval(se->e.o.left),
 			    (int)eval(se->e.o.right->e.o.left) - 1,
 			    (int)eval(se->e.o.right->e.o.right) - 1));
-	case COLTOA: return (strcpy(scxmalloc((size_t)10),
+	case COLTOA: return (strcpy(scxmalloc((unsigned)10),
 				   coltoa((int)eval(se->e.o.left))));
 	case FILENAME: {
-		     int n = eval(se->e.o.left);
+		     int n = (int)eval(se->e.o.left);
 		     char *s = strrchr(curfile, '/');
 
 		     if (n || s++ == NULL) s = curfile;
-		     p = scxmalloc((size_t)(strlen(s)+1));
+		     p = scxmalloc((unsigned)(strlen(s)+1));
 		     (void) strcpy(p, s);
 		     return (p);
 	}
@@ -1380,7 +1381,7 @@ setiterations(int i)
 }
 
 void
-EvalAll()
+EvalAll(void)
 {
     int lastcnt, pair, v;
   
@@ -1398,7 +1399,7 @@ EvalAll()
 		v = (int) eval(cpairs[pair]->expr);
 		cpairs[pair]->fg = v & 7;
 		cpairs[pair]->bg = (v >> 3) & 7;
-		init_pair(pair + 1, cpairs[pair]->fg, cpairs[pair]->bg);
+		init_pair((short)(pair + 1), (short)cpairs[pair]->fg, (short)cpairs[pair]->bg);
 	    }
 	    /* Can't see to fix the problem if color 1 has an error, so
 	     * turn off color in that case.
@@ -1420,8 +1421,8 @@ EvalAll()
  * values.  Return the number of cells which changed.
  */
 
-int 
-RealEvalAll()
+static int
+RealEvalAll(void)
 {
     register int i,j;
     int chgct = 0;
@@ -1460,7 +1461,7 @@ RealEvalOne(register struct ent *p, int i, int j, int *chgct)
 	    cellerror = CELLOK;
 	    v = seval(p->expr);
 	}
-	p->cellerror = cellerror;
+	p->cellerror = (char)cellerror;
 	if (!v && !p->label) /* Everything's fine */
 	    return;
 	if (!p->label || !v || strcmp(v, p->label) != 0 || cellerror) {
@@ -1484,7 +1485,7 @@ RealEvalOne(register struct ent *p, int i, int j, int *chgct)
 		cellerror = CELLERROR;
 	}
 	if ((cellerror != p->cellerror) || (v != p->v)) {
-	    p->cellerror = cellerror;
+	    p->cellerror = (char)cellerror;
 	    p->v = v;
 	    if (!cellerror)	/* don't keep eval'ing an error */
 		(*chgct)++;
@@ -1502,7 +1503,7 @@ new(int op, struct enode *a1, struct enode *a2)
     	p = freeenodes;
 	freeenodes = p->e.o.left;
     } else
-	p = (struct enode *) scxmalloc((size_t)sizeof(struct enode));
+	p = (struct enode *)(void *) scxmalloc((unsigned)sizeof(struct enode));
     p->op = op;
     p->e.o.left = a1;
     p->e.o.right = a2;
@@ -1518,7 +1519,7 @@ new_var(int op, struct ent_ptr a1)
     	p = freeenodes;
 	freeenodes = p->e.o.left;
     } else
-	p = (struct enode *) scxmalloc((size_t)sizeof(struct enode));
+	p = (struct enode *)(void *) scxmalloc((unsigned)sizeof(struct enode));
     p->op = op;
     p->e.v = a1;
     return p;
@@ -1533,7 +1534,7 @@ new_range(int op, struct range_s a1)
 	freeenodes = p->e.o.left;
     }
     else
-	p = (struct enode *) scxmalloc((size_t)sizeof(struct enode));
+	p = (struct enode *)(void *) scxmalloc((unsigned)sizeof(struct enode));
     p->op = op;
     p->e.r = a1;
     return p;
@@ -1547,7 +1548,7 @@ new_const(int op, double a1)
 	p = freeenodes;
 	freeenodes = p->e.o.left;
     } else
-	p = (struct enode *) scxmalloc((size_t)sizeof(struct enode));
+	p = (struct enode *)(void *) scxmalloc((unsigned)sizeof(struct enode));
     p->op = op;
     p->e.k = a1;
     return p;
@@ -1562,7 +1563,7 @@ new_str(char *s)
     	p = freeenodes;
 	freeenodes = p->e.o.left;
     } else
-	p = (struct enode *) scxmalloc((size_t)sizeof(struct enode));
+	p = (struct enode *)(void *) scxmalloc((unsigned)sizeof(struct enode));
     p->op = O_SCONST;
     p->e.s = s;
     return (p);
@@ -1572,12 +1573,10 @@ void
 copy(struct ent *dv1, struct ent *dv2, struct ent *v1, struct ent *v2)
 {
     struct ent *p;
-    struct ent *n;
     static int minsr = -1, minsc = -1;
     static int maxsr = -1, maxsc = -1;
     int mindr, mindc;
     int maxdr, maxdc;
-    int vr, vc;
     int r, c;
     int deltar, deltac;
 
@@ -1803,8 +1802,8 @@ mover(struct ent *d, struct ent *v1, struct ent *v2)
 
 /* Goto subroutines */
 
-void
-g_free()
+static void
+g_free(void)
 {
     switch (gs.g_type) {
 	case G_STR:
@@ -1817,7 +1816,7 @@ g_free()
 
 /* repeat the last goto command */
 void
-go_last()
+go_last(void)
 {
     int num = 0;
 
@@ -1832,11 +1831,13 @@ go_last()
 	    moveto(gs.g_row, gs.g_col, gs.g_lastrow, gs.g_lastcol,
 		gs.strow, gs.stcol);
 	    break;
-	case G_XSTR: 
+	case G_XSTR:
 	    num++;
-	case G_NSTR: 
+	    __attribute__((fallthrough));
+	case G_NSTR:
 	    num++;
-	case G_STR: 
+	    __attribute__((fallthrough));
+	case G_STR:
 	    gs.g_type = G_NONE;	/* Don't free the string */
 	    str_search(gs.g_s, gs.g_row, gs.g_col, gs.g_lastrow, gs.g_lastcol,
 		    num); 
@@ -1984,7 +1985,7 @@ str_search(char *s, int firstrow, int firstcol, int lastrow, int lastcol,
 #if defined(REGCOMP)
     if ((errcode = regcomp(&preg, s, REG_EXTENDED))) {
 	scxfree(s);
-	tmp = scxmalloc((size_t)160);
+	tmp = scxmalloc((unsigned)160);
 	regerror(errcode, &preg, tmp, sizeof(tmp));
 	error(tmp);
 	scxfree(tmp);
@@ -2066,7 +2067,7 @@ str_search(char *s, int firstrow, int firstcol, int lastrow, int lastcol,
 		    *line = '\0';
 	    }
 	}
-	if (!col_hidden[c])
+	if (!col_hidden[c]) {
 	    if (gs.g_type == G_STR) {
 		if (p && p->label
 #if defined(REGCOMP)
@@ -2099,6 +2100,7 @@ str_search(char *s, int firstrow, int firstcol, int lastrow, int lastcol,
 #endif
 #endif
 		    break;
+	}
 	if (r == endr && c == endc) {
 	    error("String not found");
 #if defined(REGCOMP)
@@ -2235,7 +2237,7 @@ void
 let(struct ent *v, struct enode *e)
 {
     double val;
-    unsigned isconstant = constant(e);
+    int isconstant = constant(e);
 
     if (locked_cell(v->row, v->col))
 	return;
@@ -2259,7 +2261,7 @@ let(struct ent *v, struct enode *e)
 	    changed++;
 	    modflg++;
 	    FullUpdate++;
-	    v->cellerror = cellerror;
+	    v->cellerror = (char)cellerror;
 	}
 	(void) signal(SIGFPE, doquit);
 	if (exprerr) {
@@ -2330,7 +2332,7 @@ slet(struct ent *v, struct enode *se, int flushdir)
     	v->flags |= is_changed;
 	changed++;	modflg++;
 	FullUpdate++;
-	v->cellerror = cellerror;
+	v->cellerror = (char)cellerror;
     }
     (void) signal(SIGFPE, doquit);
     if (exprerr) {
@@ -2414,37 +2416,37 @@ format_cell(struct ent *v1, struct ent *v2, char *s)
 }
 
 void
-hide_row(int arg)
+hide_row(int narg)
 {
-    if (arg < 0) {
+    if (narg < 0) {
 	error("Invalid Range");
 	return;
     }
-    if (arg >= maxrows-1) {
-	if (!growtbl(GROWROW, arg+1, 0)) {
+    if (narg >= maxrows-1) {
+	if (!growtbl(GROWROW, narg+1, 0)) {
 	    error("You can't hide the last row");
 	    return;
 	}
     }
     FullUpdate++;
-    row_hidden[arg] = TRUE;
+    row_hidden[narg] = TRUE;
 }
 
 void
-hide_col(int arg)
+hide_col(int narg)
 {
-    if (arg < 0) {
+    if (narg < 0) {
 	error("Invalid Range");
 	return;
     }
-    if (arg >= maxcols-1) {
-    	if ((arg >= ABSMAXCOLS-1) || !growtbl(GROWCOL, 0, arg+1)) {
+    if (narg >= maxcols-1) {
+    	if ((narg >= ABSMAXCOLS-1) || !growtbl(GROWCOL, 0, narg+1)) {
 	    error("You can't hide the last col");
 	    return;
 	}
     }
     FullUpdate++;
-    col_hidden[arg] = TRUE;
+    col_hidden[narg] = TRUE;
 }
 
 void
@@ -2475,7 +2477,7 @@ constant(register struct enode *e)
 	 e == NULL
 	 || e->op == O_CONST
 	 || e->op == O_SCONST
-	 || e->op == 'm' && constant(e->e.o.left)
+	 || (e->op == 'm' && constant(e->e.o.left))
 	 || (
 	     e->op != O_VAR
 	     && !(e->op & REDUCE)
@@ -2541,7 +2543,7 @@ label(register struct ent *v, register char *s, int flushdir)
     }
 }
 
-void
+static void
 decodev(struct ent_ptr v)
 {
 	struct range *r;
@@ -2567,10 +2569,10 @@ coltoa(int col)
     register char *p = rname;
 
     if (col > 25) {
-	*p++ = col/26 + 'A' - 1;
+	*p++ = (char)(col/26 + 'A' - 1);
 	col %= 26;
     }
-    *p++ = col+'A';
+    *p++ = (char)(col+'A');
     *p = '\0';
     return (rname);
 }
@@ -2748,7 +2750,7 @@ decompile(register struct enode *e, int	priority)
                         linelim--;
                         break;
 	default:	decompile(e->e.o.left, mypriority);
-			line[linelim++] = e->op;
+			line[linelim++] = (char)e->op;
 			decompile(e->e.o.right, mypriority+1);
 			break;
 	}
@@ -2860,7 +2862,7 @@ editfmt(int row, int col)
     p = lookat(row, col);
     if (p->format) {
         (void) sprintf(line, "fmt %s \"%s\"", v_name(row, col), p->format);
-	linelim = strlen(line);
+	linelim = (int)strlen(line);
     }
 }
 
@@ -2871,11 +2873,11 @@ editv(int row, int col)
 
     p = lookat(row, col);
     (void) sprintf(line, "let %s = ", v_name(row, col));
-    linelim = strlen(line);
+    linelim = (int)strlen(line);
     if (p->flags & is_valid) {
 	if (p->flags & is_strexpr || p->expr == NULL) {
 	    (void) sprintf(line+linelim, "%.15g", p->v);
-	    linelim = strlen(line);
+	    linelim = (int)strlen(line);
 	} else
 	    editexp(row, col);
     }
@@ -2903,7 +2905,7 @@ edits(int row, int col)
 	(void) sprintf(line, "%sstring %s = ",
 		((p->flags & is_leftflush) ? "left" : "right"),
 		v_name(row, col));
-    linelim = strlen(line);
+    linelim = (int)strlen(line);
     if (p->flags & is_strexpr && p->expr) {
 	editexp(row, col);
     } else if (p->label) {

@@ -56,7 +56,7 @@ add_range(char *name, struct ent_ptr left, struct ent_ptr right, int is_range)
     right.vp = lookat(maxr, maxc);
     right.vf = maxrf | maxcf;
 
-    if (!find_range(name, strlen(name), (struct ent *)0, (struct ent *)0,
+    if (!find_range(name, (int)strlen(name), (struct ent *)0, (struct ent *)0,
 	    &prev)) {
 	error("Error: range name \"%s\" already defined", name);
 	scxfree(name);
@@ -96,7 +96,7 @@ add_range(char *name, struct ent_ptr left, struct ent_ptr right, int is_range)
 		label(rcp, name, 0);
     }
 
-    r = (struct range *)scxmalloc((unsigned)sizeof(struct range));
+    r = (struct range *)(void *)scxmalloc((unsigned)sizeof(struct range));
     r->r_name = name;
     r->r_left = left;
     r->r_right = right;
@@ -146,7 +146,7 @@ del_range(struct ent *left, struct ent *right)
 }
 
 void
-clean_range()
+clean_range(void)
 {
     register struct range *r;
     register struct range *nextr;
@@ -179,11 +179,11 @@ find_range(char *name, int len, struct ent *lmatch, struct ent *rmatch,
 
     if (name) {
 	for (r = rng_base; r; r = r->r_next) {
-	    if ((cmp = strncmp(name, r->r_name, len)) > 0)
+	    if ((cmp = strncmp(name, r->r_name, (size_t)len)) > 0)
 		return (cmp);
 	    *rng = r;
 	    if (cmp == 0)
-		if (!exact || strlen(r->r_name) == len)
+		if (!exact || (int)strlen(r->r_name) == len)
 		    return (cmp);
 	}
 	return (-1);
@@ -199,7 +199,7 @@ find_range(char *name, int len, struct ent *lmatch, struct ent *rmatch,
 }
 
 void
-sync_ranges()
+sync_ranges(void)
 {
     int i, j;
     struct range *r;
@@ -328,7 +328,7 @@ r_name(int r1, int c1, int r2, int c2)
 }
 
 int
-are_ranges()
+are_ranges(void)
 {
     return (rng_base != 0);
 }

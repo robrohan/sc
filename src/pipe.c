@@ -36,12 +36,13 @@ getnum(int r0, int c0, int rn, int cn, int fd)
 	for (c = c0, pp = ATBL(tbl, r, c); c <= cn; pp++, c++) {
 	    *line = '\0';
 	    p = *pp;
-	    if (p)
+	    if (p) {
 		if (p->cellerror)
 		    sprintf(line, "%s", (*pp)->cellerror == CELLERROR ?
 			    "ERROR" : "INVALID");
 		else if (p->flags & is_valid)
 		    sprintf(line, "%.15g", p->v);
+	    }
 	    if (c < cn)
 		strcat(line, "\t");
 	    else
@@ -214,7 +215,7 @@ getrange(char *name, int fd)
     char *p;
 
     *line = '\0';
-    if (!find_range(name, strlen(name), (struct ent *)0, (struct ent *)0, &r)) {
+    if (!find_range(name, (int)strlen(name), (struct ent *)0, (struct ent *)0, &r)) {
 	sprintf(line, "%s%s%s%d",
 		r->r_left.vf & FIX_COL ? "$" : "",
 		coltoa(r->r_left.vp->col),
@@ -261,7 +262,7 @@ doeval(struct enode *e, char *fmt, int row, int col, int fd)
     v = eval(e);
     if (fmt) {
 	if (*fmt == ctl('d')) {
-	    time_t tv = v;
+	    time_t tv = (time_t)v;
 	    strftime(line, FBUFLEN, fmt + 1, localtime(&tv));
 	} else
 	    format(fmt, precision[col], v, line, FBUFLEN);
@@ -315,7 +316,7 @@ doquery(char *s, char *data, int fd)
 }
 
 void
-dogetkey()
+dogetkey(void)
 {
     int c, len;
 
@@ -336,15 +337,15 @@ dogetkey()
 	    else
 		line[i++] = line[j++];
 	}
-	len = strlen(line + 1) + 1;
+	len = (int)strlen(line + 1) + 1;
     } else {
 	line[0] = '0';
 	sprintf(line + 1, "UNKNOWN KEY");
-	len = strlen(line + 1) + 1;
+	len = (int)strlen(line + 1) + 1;
     }
 
 
-    write(macrofd, line, len);
+    write(macrofd, line, (size_t)len);
 }
 
 void

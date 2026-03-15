@@ -48,7 +48,7 @@
 #define COLFORMATS	 10	/* Number of custom column formats */
 #define DELBUFSIZE	 40	/* Number of named buffers + 4 */
 #ifdef PSC
-# define error(msg)	fprintf(stderr, msg);
+# define error(msg)	fprintf(stderr, "%s", msg);
 #else
 # define error isatty(fileno(stdout)) && !move(1,0) && !clrtoeol() && printw
 #endif
@@ -398,9 +398,9 @@ extern	char *v_name(int row, int col);
 extern	double eval(register struct enode *e);
 extern	int any_locked_cells(int r1, int c1, int r2, int c2);
 int are_abbrevs(void);
-extern	int are_colors();
-extern	int are_frames();
-extern	int are_ranges();
+extern	int are_colors(void);
+extern	int are_frames(void);
+extern	int are_ranges(void);
 extern	int atocol(char *string, int len);
 extern	int creadfile(char *save, int  eraseflg);
 extern	int cwritefile(char *fname, int r0, int c0, int rn, int cn);
@@ -415,7 +415,7 @@ extern	int get_rcqual(int ch);
 extern	int growtbl(int rowcol, int toprow, int topcol);
 extern	int locked_cell(int r, int c);
 extern	int modcheck(char *endstr);
-extern	int nmgetch();
+extern	int nmgetch(void);
 extern	int plugin_exists(char *name, int len, char *path);
 extern	int readfile(char *fname, int eraseflg);
 extern	int writefile(char *fname, int r0, int c0, int rn, int cn);
@@ -432,7 +432,7 @@ extern	struct enode *new_var(int op, struct ent_ptr a1);
 extern	struct ent *lookat(int row, int col);
 extern	struct crange *find_crange(int row, int col);
 extern	struct frange *find_frange(int row, int col);
-extern	void EvalAll();
+extern	void EvalAll(void);
 extern	void add_crange(struct ent *r_left, struct ent *r_right, int pair);
 extern	void add_frange(struct ent *or_left, struct ent *or_right,
 	struct ent *ir_left, struct ent *ir_right, int toprows, int bottomrows,
@@ -445,13 +445,13 @@ extern	void backrow(int arg);
 extern	void change_color(int pair, struct enode *e);
 extern	void checkbounds(int *rowp, int *colp);
 extern	void clearent(struct ent *v);
-extern	void clean_crange();
-extern	void clean_frange();
-extern	void clean_range();
+extern	void clean_crange(void);
+extern	void clean_frange(void);
+extern	void clean_range(void);
 extern	void closecol(int arg);
 extern	void closefile(FILE *f, int pid, int rfd);
 extern	void closerow(int r, int numrow);
-extern	void colshow_op();
+extern	void colshow_op(void);
 extern	void copy(struct ent *dv1, struct ent *dv2, struct ent *v1,
 	struct ent *v2);
 extern	void copyent(register struct ent *n, register struct ent *p,
@@ -461,22 +461,22 @@ extern	void deleterow(register int arg);
 extern	void del_range(struct ent *left, struct ent *right);
 extern	void del_abbr(char *abbrev);
 extern	void deraw(int ClearLastLine);
-extern	void diesave();
+extern	void diesave(void);
 extern	void doend(int rowinc, int colinc);
 extern	void doformat(int c1, int c2, int w, int p, int r);
-extern	void dupcol();
-extern	void duprow();
+extern	void dupcol(void);
+extern	void duprow(void);
 extern	void doquery(char *s, char *data, int fd);
 extern	void dostat(int fd);
 extern	void dotick(int tick);
 extern	void editexp(int row, int col);
 extern	void editfmt(int row, int col);
-extern	void edit_mode();
+extern	void edit_mode(void);
 extern	void edits(int row, int col);
 extern	void editv(int row, int col);
 extern	void efree(struct enode *e);
 extern	void erase_area(int sr, int sc, int er, int ec, int ignorelock);
-extern	void erasedb();
+extern	void erasedb(void);
 extern	void eraser(struct ent *v1, struct ent *v2);
 extern	void fgetnum(int r0, int c0, int rn, int cn, int fd);
 extern	void fill(struct ent *v1, struct ent *v2, double start, double inc);
@@ -486,7 +486,7 @@ extern	void fix_frames(int row1, int col1, int row2, int col2,
 	int delta1, int delta2);
 extern	void fix_ranges(int row1, int col1, int row2, int col2,
 	int delta1, int delta2);
-extern	void flush_saved();
+extern	void flush_saved(void);
 extern	void formatcol(int arg);
 extern	void format_cell(struct ent *v1, struct ent *v2, char *s);
 extern	void forwcol(int arg);
@@ -497,66 +497,66 @@ extern	void getfmt(int r0, int c0, int rn, int cn, int fd);
 extern	void getformat(int col, int fd);
 extern	void getnum(int r0, int c0, int rn, int cn, int fd);
 extern	void getstring(int r0, int c0, int rn, int cn, int fd);
-extern	void go_last();
-extern	void goraw();
-extern	void help();
+extern	void go_last(void);
+extern	void goraw(void);
+extern	void help(void);
 extern	void hide_col(int arg);
 extern	void hide_row(int arg);
 extern	void hidecol(int arg);
 extern	void hiderow(int arg);
 extern	void initcolor(int colornum);
-extern	void initkbd();
+extern	void initkbd(void);
 extern	void ins_in_line(int c);
 extern	void ins_string(char *s);
-extern	void insert_mode();
+extern	void insert_mode(void);
 extern	void insertcol(int arg, int delta);
 extern	void insertrow(int arg, int delta);
-extern	void kbd_again();
+extern	void kbd_again(void);
 extern	void label(register struct ent *v, register char *s, int flushdir);
 extern	void let(struct ent *v, struct enode *e);
 extern	void list_colors(FILE *f);
 extern	void list_frames(FILE *f);
-extern	void gotonote();
+extern	void gotonote(void);
 extern	void repaint(int x, int y, int len, int attron, int attroff);
 extern	void list_ranges(FILE *f);
 extern	void lock_cells(struct ent *v1, struct ent *v2);
-extern	void markcell();
+extern	void markcell(void);
 extern	void move_area(int dr, int dc, int sr, int sc, int er, int ec);
 extern	void mover(struct ent *d, struct ent *v1, struct ent *v2);
 extern	void moveto(int row, int col, int lastrow, int lastcol,
 	int cornrow, int corncol);
-extern	void toggle_navigate_mode();
+extern	void toggle_navigate_mode(void);
 extern	void num_search(double n, int firstrow, int firstcol, int lastrow,
 	int lastcol, int errsearch);
 extern	void printfile(char *fname, int r0, int c0, int rn, int cn);
 extern	void pullcells(int to_insert);
 extern	void query(char *s, char *data);
-extern	void read_hist();
+extern	void read_hist(void);
 extern	void remember(int save);
-extern	void resetkbd();
-extern	void rowshow_op();
+extern	void resetkbd(void);
+extern	void rowshow_op(void);
 extern	void scxfree(char *p);
 extern	void setauto(int i);
 extern	void setiterations(int i);
 extern	void setorder(int i);
 extern	void showcol(int c1, int c2);
-extern	void showdr();
+extern	void showdr(void);
 extern	void showrow(int r1, int r2);
 extern	void showstring(char *string, int dirflush, int hasvalue, int row,
 	int col, int *nextcolp, int mxcol, int *fieldlenp, int r, int c,
 	struct frange *fr, int frightcols, int flcols, int frcols);
-extern	void signals();
+extern	void signals(void);
 extern	void slet(struct ent *v, struct enode *se, int flushdir);
 extern	void sortrange(struct ent *left, struct ent *right, char *criteria);
-extern	void startshow();
-extern	void startdisp();
-extern	void stopdisp();
+extern	void startshow(void);
+extern	void startdisp(void);
+extern	void stopdisp(void);
 extern	void str_search(char *s, int firstrow, int firstcol, int lastrow,
 	int lastcol, int num);
-extern	void sync_cranges();
-extern	void sync_franges();
-extern	void sync_ranges();
-extern	void sync_refs();
+extern	void sync_cranges(void);
+extern	void sync_franges(void);
+extern	void sync_ranges(void);
+extern	void sync_refs(void);
 extern	void tblprintfile(char *fname, int r0, int c0, int rn, int cn);
 extern	void unlock_cells(struct ent *v1, struct ent *v2);
 extern	void update(int anychanged);
@@ -567,8 +567,9 @@ extern	void write_colors(FILE *f, int indent);
 extern	void write_cranges(FILE *f);
 extern	void write_fd(register FILE *f, int r0, int c0, int rn, int cn);
 extern	void write_franges(FILE *f);
-extern	void write_hist();
+extern	void write_hist(void);
 extern	void write_line(int c);
+extern	void write_abbrevs(FILE *f);
 extern	void write_ranges(FILE *f);
 extern	void yank_area(int sr, int sc, int er, int ec);
 extern	void yankr(struct ent *v1, struct ent *v2);
@@ -582,10 +583,15 @@ extern	void getframe(int fd);
 extern	void getrange(char *name, int fd);
 extern	void doeval(struct enode *e, char *fmt, int row, int col, int fd);
 extern	void doseval(struct enode *e, int row, int col, int fd);
-extern	void dogetkey();
+extern	void dogetkey(void);
 extern	void yyerror(char *err);
-extern	int yylex();
-extern	int yyparse();
+extern	int yylex(void);
+#ifdef SIGVOID
+extern	void time_out(int signo);
+#else
+extern	int time_out(int signo);
+#endif
+extern	int yyparse(void);
 #ifdef DOBACKUPS
 extern	int backup_file(char *path);
 #endif
@@ -635,7 +641,7 @@ extern	int  pagesize;	/* If nonzero, use instead of 1/2 screen height */
 extern	int rowlimit;
 extern	int collimit;
 
-#if BSD42 || SYSIII
+#if defined(BSD42) || defined(SYSIII)
 
 #ifndef cbreak
 #define	cbreak		crmode

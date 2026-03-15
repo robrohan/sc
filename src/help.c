@@ -538,7 +538,7 @@ char *timef[] = {
 static	int	pscreen(char *screen[]);
 
 void
-help()
+help(void)
 {
     int option;
     char **ns = intro;

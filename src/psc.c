@@ -35,7 +35,7 @@ char	*coltoa(int col);
 char	*progname;
 int	getrow(char *p);
 int	getcol(char *p);
-int	scan();
+int	scan(void);
 
 int *fwidth;
 int *precision;
@@ -112,6 +112,7 @@ main(int argc, char **argv)
 	    break;
 	case 'v':
 	    (void) fprintf(stderr,"%s: %s\n", progname, rev);
+	    __attribute__((fallthrough));
 	default:
 	    (void) fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
 	    exit(1);
@@ -198,7 +199,7 @@ main(int argc, char **argv)
 			continue;
 		}
 	    }
-	    i = strlen(token);
+	    i = (int)strlen(token);
 	    if (i > fwidth[effc])
 		fwidth[effc] = i;
 	    break;
@@ -238,7 +239,7 @@ main(int argc, char **argv)
 }
 
 int
-scan()
+scan(void)
 {
     register int c;
     register char *p;
@@ -264,7 +265,7 @@ scan()
 
     if (c == '\"') {
 	while ((c = getchar()) && c != '\"' && c != '\n' && c != EOF)
-	    *p++ = c;
+	    *p++ = (char)c;
 	if (c != '\"')
 	    (void)ungetc(c, stdin);
 	*p = '\0';
@@ -272,7 +273,7 @@ scan()
     }
 
     while (c != delim1 && c != delim2 && c!= '\n' && c != EOF) {
-	*p++ = c;
+	*p++ = (char)c;
 	c = getchar();
     }
     *p = '\0';
@@ -357,10 +358,10 @@ coltoa(int col)
 	(void) fprintf(stderr,"coltoa: invalid col: %d", col);
 
     if (col > 25) {
-	*p++ = col/26 + 'A' - 1;
+	*p++ = (char)(col/26 + 'A' - 1);
 	col %= 26;
     }
-    *p++ = col+'A';
+    *p++ = (char)(col+'A');
     *p = '\0';
     return (rname);
 }

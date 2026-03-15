@@ -234,11 +234,12 @@ update(int anychanged)		/* did any cell really change in value? */
 	    i = stcol;
 	    lcols = 0;
 	    col = rescol + frcols;
-	    if (fr && stcol >= fr->or_left->col)
+	    if (fr && stcol >= fr->or_left->col) {
 		if (stcol < fr->ir_left->col)
 		    i = fr->or_left->col;
 		else
 		    col += flcols;
+	    }
 	    for (; (col + fwidth[i] < cols-1 || col_hidden[i] || i < curcol) &&
 		    i < maxcols; i++) {
 		lcols++;
@@ -328,11 +329,12 @@ update(int anychanged)		/* did any cell really change in value? */
 	    i = stcol;
 	    lcols = 0;
 	    col = rescol + frcols;
-	    if (fr && stcol >= fr->or_left->col)
+	    if (fr && stcol >= fr->or_left->col) {
 		if (stcol < fr->ir_left->col)
 		    i = fr->or_left->col;
 		else
 		    col += flcols;
+	    }
 	    for (; (col + fwidth[i] < cols-1 || col_hidden[i] || i < curcol) &&
 		    i < maxcols; i++) {
 		lcols++;
@@ -377,11 +379,12 @@ update(int anychanged)		/* did any cell really change in value? */
 	    i = strow;
 	    rows = 0;
 	    row = RESROW + fbrows;
-	    if (fr && strow >= fr->or_left->row)
+	    if (fr && strow >= fr->or_left->row) {
 		if (strow < fr->ir_left->row)
 		    i = fr->or_left->row;
 		else
 		    row += ftrows;
+	    }
 	    for (; (row < lines || row_hidden[i] || i < currow) && i < maxrows;
 		    i++) {
 		rows++;
@@ -460,11 +463,12 @@ update(int anychanged)		/* did any cell really change in value? */
 	    i = strow;
 	    rows = 0;
 	    row = RESROW + fbrows;
-	    if (fr && strow >= fr->or_left->row)
+	    if (fr && strow >= fr->or_left->row) {
 		if (strow < fr->ir_left->row)
 		    i = fr->or_left->row;
 		else
 		    row += ftrows;
+	    }
 	    for (; (row < lines || row_hidden[i] || i < currow) && i < maxrows;
 		    i++) {
 		rows++;
@@ -522,7 +526,7 @@ update(int anychanged)		/* did any cell really change in value? */
 	(void) move(lastmy, lastmx+fwidth[lastcol]);
 
 	if ((inch() & A_CHARTEXT) == '<')
-	    (void) addch(under_cursor | (inch() & A_ATTRIBUTES));
+	    (void) addch((chtype)under_cursor | (inch() & A_ATTRIBUTES));
 
 	repaint(lastmx, RESROW - 1, fwidth[lastcol], A_STANDOUT, 0);
 	repaint(0, lastmy, rescol - 1, A_STANDOUT, 0);
@@ -606,7 +610,7 @@ update(int anychanged)		/* did any cell really change in value? */
 	    if (col_hidden[i])
 		continue;
 	    (void) move(2, col);
-	    k = (fwidth[i] - strlen(coltoa(i)))/2;
+	    k = (fwidth[i] - (int)strlen(coltoa(i)))/2;
 	    if (fwidth[i] == 1)
 		(void) printw("%1s", coltoa(i%26));
 	    else if (braille)
@@ -638,13 +642,13 @@ update(int anychanged)		/* did any cell really change in value? */
 	    maxsc = showsc > curcol ? showsc : curcol;
 
 	    if (showtop && !message) {
-		char r[6];
+		char rbuf[6];
 
-		strcpy(r, coltoa(minsc));
-		strcat(r, ":");
-		strcat(r, coltoa(maxsc));
+		strcpy(rbuf, coltoa(minsc));
+		strcat(rbuf, ":");
+		strcat(rbuf, coltoa(maxsc));
 		(void) clrtoeol();
-		(void) printw("Default range:  %s", r);
+		(void) printw("Default range:  %s", rbuf);
 	    }
 	} else {
 	    minsr = showsr < currow ? showsr : currow;
@@ -808,7 +812,7 @@ update(int anychanged)		/* did any cell really change in value? */
 				    precision[col], (*pp)->v, 
 				    field, sizeof(field));
 			}
-			if (strlen(field) > fwidth[col]) {
+			if ((int)strlen(field) > fwidth[col]) {
 			    for (i = 0; i < fwidth[col]; i++) {
 				if (note) {
 				    attr_t attr;
@@ -827,7 +831,7 @@ update(int anychanged)		/* did any cell really change in value? */
 			} else {
 			    if (cfmt && *cfmt != ctl('d'))
 				for (i = 0;
-					i < fwidth[col] - strlen(field) - note;
+					i < fwidth[col] - (int)strlen(field) - note;
 					i++)
 				    (void)addch(' ');
 			    if (note) {
@@ -844,7 +848,7 @@ update(int anychanged)		/* did any cell really change in value? */
 			    (void)addstr(field);
 			    if (cfmt && *cfmt == ctl('d'))
 				for (i = 0;
-					i < fwidth[col] - strlen(field) - note;
+					i < fwidth[col] - (int)strlen(field) - note;
 					i++)
 				    (void)addch(' ');
 			}
@@ -914,7 +918,7 @@ update(int anychanged)		/* did any cell really change in value? */
     repaint(0, lastmy, rescol - 1, 0, A_STANDOUT);
 
     (void) move(lastmy, lastmx+fwidth[lastcol]);
-    under_cursor = (inch() & A_CHARTEXT);
+    under_cursor = (char)(inch() & A_CHARTEXT);
     if (!showcell)
 	(void) addch('<' | (inch() & A_ATTRIBUTES));
 
@@ -1073,7 +1077,7 @@ repaint(int x, int y, int len, int attron, int attroff)
 {
     while (len-- > 0) {
 	(void) move(y, x);
-	addch((inch() | attron) & ~attroff);
+	addch((inch() | (chtype)attron) & ~(chtype)attroff);
 	x++;
     }
 }
@@ -1100,9 +1104,9 @@ struct termio tmio;
 #endif
 
 void
-startdisp()
+startdisp(void)
 {
-#if sun
+#if defined(sun)
     int	 fd;
     fd = dup(0);
 #endif
@@ -1126,10 +1130,10 @@ startdisp()
 	start_color();
 	for (i = 0; i < 8; i++)
 	    if (cpairs[i])
-		init_pair(i + 1, cpairs[i]->fg, cpairs[i]->bg);
+		init_pair((short)(i + 1), (short)cpairs[i]->fg, (short)cpairs[i]->bg);
 	if (color && has_colors())
 	    bkgdset(COLOR_PAIR(1) | ' ');
-#if sun
+#if defined(sun)
 	close(0);
 	dup(fd);
 	close(fd);
@@ -1177,7 +1181,7 @@ startdisp()
 }
 
 void
-stopdisp()
+stopdisp(void)
 {
 #ifndef MSDOS
     if (usecurses) {
@@ -1224,10 +1228,10 @@ deraw(int ClearLastLine)
 
 #else /* VMS */
 void
-goraw()
+goraw(void)
 {
     if (usecurses) {
-#if SYSV2 || SYSV3
+#if defined(SYSV2) || defined(SYSV3)
 	fixterm();
 #else /* SYSV2 || SYSV3 */
 	cbreak();
@@ -1253,7 +1257,7 @@ deraw(int ClearLastLine)
 	    (void) clrtoeol();
 	    (void) refresh();
 	}
-#if SYSV2 || SYSV3
+#if defined(SYSV2) || defined(SYSV3)
 	resetterm();
 #else
 	nocbreak();

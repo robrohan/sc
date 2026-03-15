@@ -52,8 +52,8 @@ checkbounds(int *rowp, int *colp)
 	
 /* scxrealloc will just scxmalloc if oldptr is == NULL */
 #define GROWALLOC(newptr, oldptr, nelem, type, msg) \
-    newptr = (type *)scxrealloc((char *)oldptr, \
-	    (unsigned)(nelem * sizeof(type))); \
+    newptr = (type *)(void *)scxrealloc((char *)oldptr, \
+	    (unsigned)((size_t)(nelem) * sizeof(type))); \
     if (newptr == (type *)NULL) { \
 	error(msg); \
 	return (FALSE); \
@@ -90,6 +90,9 @@ growtbl(int rowcol, int toprow, int topcol)
     newrows = maxrows;
 #endif /* !PSC */
     newcols = maxcols;
+#ifdef PSC
+    (void)toprow;
+#endif
     if (rowcol == GROWNEW) {
 #ifndef PSC
 	maxrows = toprow = 0;
@@ -136,7 +139,7 @@ growtbl(int rowcol, int toprow, int topcol)
 	int	lcnt;
 
 	GROWALLOC(row_hidden2, row_hidden, newrows, char, nolonger);
-	memset(row_hidden+maxrows, 0, (newrows-maxrows)*sizeof(char));
+	memset(row_hidden+maxrows, 0, (size_t)(newrows-maxrows)*sizeof(char));
 
 	/*
 	 * alloc tbl row pointers, per net.lang.c, calloc does not
@@ -155,13 +158,13 @@ growtbl(int rowcol, int toprow, int topcol)
 	GROWALLOC(precision2, precision, newcols, int, nowider);
 	GROWALLOC(realfmt2, realfmt, newcols, int, nowider);
 #ifdef PSC
-	memset(fwidth+maxcols, 0, (newcols-maxcols)*sizeof(int));
-	memset(precision+maxcols, 0, (newcols-maxcols)*sizeof(int));
-	memset(realfmt+maxcols, 0, (newcols-maxcols)*sizeof(int));
+	memset(fwidth+maxcols, 0, (size_t)(newcols-maxcols)*sizeof(int));
+	memset(precision+maxcols, 0, (size_t)(newcols-maxcols)*sizeof(int));
+	memset(realfmt+maxcols, 0, (size_t)(newcols-maxcols)*sizeof(int));
     }
 #else
 	GROWALLOC(col_hidden2, col_hidden, newcols, char, nowider);
-	memset(col_hidden+maxcols, 0, (newcols-maxcols)*sizeof(char));
+	memset(col_hidden+maxcols, 0, (size_t)(newcols-maxcols)*sizeof(char));
 	for (i = maxcols; i < newcols; i++) {
 	    fwidth[i] = DEFWIDTH;
 	    precision[i] = DEFPREC;
@@ -170,8 +173,8 @@ growtbl(int rowcol, int toprow, int topcol)
 
 	/* [re]alloc the space for each row */
 	for (i = 0; i < maxrows; i++) {
-	    if ((tbl[i] = (struct ent **)scxrealloc((char *)tbl[i],
-		(unsigned)(newcols * sizeof(struct ent **)))) == (struct ent **)0) {
+	    if ((tbl[i] = (struct ent **)(void *)scxrealloc((char *)tbl[i],
+		(unsigned)((size_t)newcols * sizeof(struct ent **)))) == (struct ent **)0) {
 	    error(nowider);
 	    return(FALSE);
 	    }
@@ -188,7 +191,7 @@ growtbl(int rowcol, int toprow, int topcol)
 
     /* fill in the bottom of the table */
     for (; i < newrows; i++) {
-	if ((tbl[i] = (struct ent **)scxmalloc((unsigned)(newcols *
+	if ((tbl[i] = (struct ent **)(void *)scxmalloc((unsigned)((size_t)newcols *
 		sizeof(struct ent **)))) == (struct ent **)0) {
 	    error(nowider);
 	    return(FALSE);

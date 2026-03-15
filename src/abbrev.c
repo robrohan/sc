@@ -26,7 +26,7 @@
 static	struct abbrev *abbr_base;
 
 int
-are_abbrevs()
+are_abbrevs(void)
 {
     return (abbr_base != 0);
 }
@@ -48,7 +48,7 @@ add_abbr(char *string)
 	    int pid;
 	    char px[MAXCMD];
 	    char *pager;
-	    struct abbrev *a;
+	    struct abbrev *ap;
 	    struct abbrev *nexta;
 
 	    (void) strcpy(px, "| ");
@@ -64,12 +64,12 @@ add_abbr(char *string)
 	    if (!brokenpipe) (void) fprintf(f, "%-15s %s\n", "------------",
 		    "--------");
 
-	    for (a = nexta = abbr_base; nexta; a = nexta, nexta = a->a_next)
+	    for (ap = nexta = abbr_base; nexta; ap = nexta, nexta = ap->a_next)
 		;
-	    while (a) {
-		(void) fprintf(f, "%-15s %s\n", a->abbr, a->exp);
+	    while (ap) {
+		(void) fprintf(f, "%-15s %s\n", ap->abbr, ap->exp);
 		if (brokenpipe) return;
-		a = a->a_prev;
+		ap = ap->a_prev;
 	    }
 	    closefile(f, pid, 0);
 	    return;
@@ -95,19 +95,20 @@ add_abbr(char *string)
 	    }
     }
     
-    if (expansion == NULL)
-	if ((a = find_abbr(string, strlen(string), &prev))) {
+    if (expansion == NULL) {
+	if ((a = find_abbr(string, (int)strlen(string), &prev))) {
 	    error("abbrev \"%s %s\"", a->abbr, a->exp);
 	    return;
 	} else {
 	    error("abreviation \"%s\" doesn't exist", string);
 	    return;
 	}
+    }
  
-    if (find_abbr(string, strlen(string), &prev))
+    if (find_abbr(string, (int)strlen(string), &prev))
 	del_abbr(string);
 
-    a = (struct abbrev *)scxmalloc((unsigned)sizeof(struct abbrev));
+    a = (struct abbrev *)(void *)scxmalloc((unsigned)sizeof(struct abbrev));
     a->abbr = string;
     a->exp = expansion;
 
@@ -130,9 +131,9 @@ void
 del_abbr(char *abbrev)
 {
     struct abbrev *a;
-    struct abbrev **prev;
+    struct abbrev **prev = NULL;
 
-    if (!(a = find_abbr(abbrev, strlen(abbrev), prev))) 
+    if (!(a = find_abbr(abbrev, (int)strlen(abbrev), prev)))
 	return;
 
     if (a->a_next)
@@ -158,11 +159,11 @@ find_abbr(char *abbrev, int len, struct abbrev **prev)
     }
 
     for (a = abbr_base; a; a = a->a_next) {
-	if ((cmp = strncmp(abbrev, a->abbr, len)) > 0)
+	if ((cmp = strncmp(abbrev, a->abbr, (size_t)len)) > 0)
 	    return (NULL);
 	*prev = a;
 	if (cmp == 0)
-	    if (!exact || strlen(a->abbr) == len)
+	    if (!exact || (int)strlen(a->abbr) == len)
 		return (a);
     }
     return NULL;
