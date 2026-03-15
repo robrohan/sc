@@ -595,7 +595,7 @@ char	** pages[] = { intro, toggleoptions, setoptions, cursor, cell, vi,
 			finf, timef, NULL};
 
 int
-main()
+main(void)
 {   int	lineno;
     char	***pagep = pages;
 #ifdef TROFF
