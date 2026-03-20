@@ -6,16 +6,9 @@
 #include <curses.h>
 #include "sc.h"
 
-// extern char *malloc();
-extern void *malloc(long unsigned int);
-extern void	*realloc(void *, long unsigned int);
-extern void	free();
-void		fatal();
+#include <stdlib.h>
 
-#ifdef SYSV3
-extern void	free();
-extern void	exit();
-#endif
+void fatal(char *str);
 
 #define	MAGIC	(double)1234567890.12344
 
@@ -24,9 +17,9 @@ scxmalloc(unsigned n)
 {
 	register char *ptr;
 
-	if ((ptr = malloc(n + sizeof(double))) == NULL)
+	if ((ptr = (char *)malloc(n + sizeof(double))) == NULL)
 		fatal("scxmalloc: no memory");
-	*((double *) ptr) = MAGIC;		/* magic number */
+	*((double *)(void *) ptr) = MAGIC;		/* magic number */
 	return(ptr + sizeof(double));
 }
 
@@ -38,12 +31,12 @@ scxrealloc(char *ptr, unsigned n)
 		return(scxmalloc(n));
 
 	ptr -= sizeof(double);
-	if (*((double *) ptr) != MAGIC)
+	if (*((double *)(void *) ptr) != MAGIC)
 		fatal("scxrealloc: storage not scxmalloc'ed");
 
-	if ((ptr = realloc(ptr, n + sizeof(double))) == NULL)
+	if ((ptr = (char *)realloc(ptr, n + sizeof(double))) == NULL)
 		fatal("scxmalloc: no memory");
-	*((double *) ptr) = MAGIC;		/* magic number */
+	*((double *)(void *) ptr) = MAGIC;		/* magic number */
 	return(ptr + sizeof(double));
 }
 
@@ -53,7 +46,7 @@ scxfree(char *p)
 	if (p == NULL)
 		fatal("scxfree: NULL");
 	p -= sizeof(double);
-	if (*((double *) p) != MAGIC)
+	if (*((double *)(void *) p) != MAGIC)
 		fatal("scxfree: storage not malloc'ed");
 	free(p);
 }

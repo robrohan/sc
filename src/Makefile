@@ -12,7 +12,7 @@
 
 # Specify the name of the program.
 # All documentation and installation keys on this value.
-# 
+#
 name=sc
 NAME=SC
 
@@ -189,7 +189,7 @@ LN=ln
 
 #########################################
 # Use this for system V.2 (includes: HP-UX 7.05, UNIXPC)
-#CFLAGS= -O -DSYSV2 
+#CFLAGS= -O -DSYSV2
 #LDFLAGS=
 #LIB=-lm -lPW -lcurses
 # with gcc on a Sequent also use:
@@ -237,7 +237,7 @@ LN=ln
 # Use this for Sequent boxes
 #CC=atscc
 #CFLAGS=-O -DBSD42
-#LDFLAGS= 
+#LDFLAGS=
 #LIB=-lm -lcurses  -ltermcap
 #PSCLIB=-lseq
 # with gcc also use:
@@ -257,11 +257,11 @@ LN=ln
 # serial lines).
 #
 # Be sure to define SIGVOID and REGEX (to -DRE_COMP) above.
-# 
+#
 #CC=/usr/5bin/cc
-#CFLAGS= -O -DSYSV3 
+#CFLAGS= -O -DSYSV3
 #LDFLAGS=
-#LIB=-lm -lcurses 
+#LIB=-lm -lcurses
 
 #########################################
 # Use this for system III (XENIX)
@@ -278,7 +278,7 @@ LN=ln
 #########################################
 # Use this for VENIX
 #CFLAGS= -DVENIX -DBSD42 -DV7
-#LDFLAGS= -z -i 
+#LDFLAGS= -z -i
 #LIB=-lm -lcurses -ltermcap
 
 #########################################
@@ -336,7 +336,11 @@ CC=gcc
 # real effect on the reliability of the program, but may concern some
 # people who don't understand them.
 #CFLAGS=-DSYSV3 -O2 -Wall -pipe
-CFLAGS=-DSYSV3 -O2 -pipe
+#CFLAGS=-DSYSV3 -O2 -pipe
+CFLAGS=-std=c99 -DSYSV3 -O2 -pipe -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align \
+ -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations \
+ -Wdouble-promotion -Wswitch-enum -Wimplicit-fallthrough \
+ -Wconversion -Wsign-conversion -Wundef
 LIB=-lm -lncurses
 
 # All of the source files
@@ -473,7 +477,7 @@ lint: sc.h sc.c lex.c gram.c interp.c cmds.c color.c crypt.c frame.c pipe.c \
 	range.c help.c vi.c version.c xmalloc.c format.c vmtbl.c
 	lint ${LINTFLAGS} ${CFLAGS} ${SIMPLE} sc.c lex.c gram.c interp.c \
 	cmds.c color.c crypt.c frame.c pipe.c range.c help.c vi.c version.c \
-	xmalloc.c format.c vmtbl.c -lcurses -lm 
+	xmalloc.c format.c vmtbl.c -lcurses -lm
 	make lintqref
 
 lintqref: help.c

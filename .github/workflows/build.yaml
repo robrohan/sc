@@ -17,7 +17,7 @@ jobs:
             name: Linux
             artifact: linux
             binpath: bin/linux/sc/
-            build_cmd: make
+            build_cmd: make CFLAGS="-D_GNU_SOURCE -DSYSV3 -O2 -pipe"
           - os: macos-latest
             name: macOS arm64
             artifact: mac-arm64
