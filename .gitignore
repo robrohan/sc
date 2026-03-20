@@ -14,4 +14,4 @@ scqref
 psc
 sc
 bin/
-
+tests/test_*
