@@ -64,8 +64,6 @@ cd src && make clean  # removes generated files: pxmalloc.c pvmtbl.c gram.c qhel
 
 ## 🧊 Backlog
 
-- [ ] Choose a C unit test framework (Check, Criterion, or Unity) and add it to the build
-- [ ] Create tests/ directory with a Makefile that builds and runs tests independently of src/
 - [ ] Write tests for xmalloc.c — scxmalloc, scxrealloc, scxfree guard validation
 - [ ] Write tests for abbrev.c — add_abbr, find_abbr, del_abbr linked list operations
 - [ ] Write tests for format.c — format() number formatting with various format strings
@@ -83,8 +81,18 @@ cd src && make clean  # removes generated files: pxmalloc.c pvmtbl.c gram.c qhel
 
 ## 📝 Todo
 
+- [ ] Detect .csv extension in readfile() in src/cmds.c and call parse_csv() directly instead of yyparse()
+- [ ] Implement parse_csv(): read fields, detect numeric vs string, call label()/let() per cell in-process
+- [ ] Handle RFC 4180 edge cases in parse_csv(): quoted fields, embedded commas, escaped quotes
+- [ ] Test CSV loading with a sample file covering strings, numbers, quoted fields, and empty cells
+- [ ] Update README.md to document CSV loading support
+
 ## 👨‍💻 Doing (0)
 
 ## ✅ Done
 
 **Complete**
+- [x] Refactor psc.c: move field-parsing logic into new src/csv.c / src/csv.h, leave psc.c as a thin main() that calls into csv.c #claude
+- [x] Choose a C unit test framework (Check, Criterion, or Unity) and add it to the build
+- [x] Create tests/ directory with a Makefile that builds and runs tests independently of src/
+- [x] Write tests for csv.c — 16 tests covering numerics, strings, separators, quoted fields, empty fields, multi-line, alternate delimiters
