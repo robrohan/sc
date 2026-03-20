@@ -16,9 +16,15 @@ jobs:
           - os: ubuntu-latest
             name: Linux
             artifact: linux
+            binpath: bin/linux/sc/
           - os: macos-latest
-            name: macOS
-            artifact: mac
+            name: macOS arm64
+            artifact: mac-arm64
+            binpath: bin/mac/sc/
+          - os: macos-13
+            name: macOS x86_64
+            artifact: mac-x86_64
+            binpath: bin/mac/sc/
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -41,5 +47,5 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: sc-${{ matrix.artifact }}
-          path: bin/${{ matrix.artifact }}/sc/
+          path: ${{ matrix.binpath }}
           if-no-files-found: error
