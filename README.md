@@ -56,8 +56,13 @@ through a series of maintainers, each adding features and fixing bugs:
 
 On Linux:
 
-- install bison (e.g. `apt install bison`)
-- `make`
+- install bison and ncurses (e.g. `apt install bison libncurses-dev`)
+- `make CFLAGS="-D_GNU_SOURCE -DSYSV3 -O2 -pipe"`
+
+The `-D_GNU_SOURCE` flag is required on Linux because glibc strictly enforces
+C standard feature-test macros. Without it, POSIX functions like `getopt`,
+`fileno`, and `popen` are hidden from the headers. macOS's SDK exposes these
+unconditionally, so a plain `make` works there.
 
 ## Troubleshooting
 
