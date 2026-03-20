@@ -27,7 +27,7 @@ jobs:
             name: macOS x86_64
             artifact: mac-x86_64
             binpath: bin/mac/sc/
-            build_cmd: make CC=clang CFLAGS="-arch x86_64 -DSYSV3 -O2 -pipe" LIB="-lm -lncurses"
+            build_cmd: make CC=clang CFLAGS="-arch x86_64 -DSYSV3 -O2 -pipe" LDFLAGS="-arch x86_64" LIB="-lm -lncurses"
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
