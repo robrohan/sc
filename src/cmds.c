@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #endif
 #include "sc.h"
+#include "csv.h"
 #include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -3188,6 +3189,36 @@ int writefile(char *fname, int r0, int c0, int rn, int cn)
     return (0);
 }
 
+static void load_csv(FILE *f)
+{
+    csv_reader r;
+    int        row = 0, col = 0;
+    int        tok;
+
+    csv_reader_init(&r, f, ',', 0, 0, 0, 0);
+    while ((tok = csv_next(&r)) != CSV_END)
+    {
+        switch (tok)
+        {
+        case CSV_NUM:
+            let(lookat(row, col), new_const(O_CONST, atof(r.token)));
+            break;
+        case CSV_ALPHA:
+            label(lookat(row, col), r.token, -1);
+            break;
+        case CSV_SEP:
+            col++;
+            break;
+        case CSV_EOL:
+            row++;
+            col = 0;
+            break;
+        default:
+            break;
+        }
+    }
+}
+
 int readfile(char *fname, int eraseflg)
 {
     register FILE *f;
@@ -3304,17 +3335,29 @@ int readfile(char *fname, int eraseflg)
     loading++;
     savefd = macrofd;
     macrofd = rfd;
-    while (!brokenpipe && fgets(line, sizeof(line), f))
     {
-#ifndef MSDOS
-        if (line[0] == '|' && pid != 0)
+        char *ext = strrchr(save, '.');
+        if (ext && strcasecmp(ext, ".csv") == 0)
         {
-            line[0] = ' ';
+            load_csv(f);
+            /* redirect saves to .sc — never overwrite the source CSV */
+            strcpy(ext, ".sc");
         }
+        else
+        {
+            while (!brokenpipe && fgets(line, sizeof(line), f))
+            {
+#ifndef MSDOS
+                if (line[0] == '|' && pid != 0)
+                {
+                    line[0] = ' ';
+                }
 #endif /* MSDOS */
-        linelim = 0;
-        if (line[0] != '#')
-            (void)yyparse();
+                linelim = 0;
+                if (line[0] != '#')
+                    (void)yyparse();
+            }
+        }
     }
     macrofd = savefd;
     --loading;
