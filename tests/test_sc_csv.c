@@ -4,6 +4,8 @@
  * 'P' (print) command, and verify the cells were loaded correctly.
  */
 
+#define _POSIX_C_SOURCE 200809L  /* expose popen, pclose, strdup on Linux */
+
 #include "unity/unity.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -161,7 +163,7 @@ void test_save_to_sc_file_preserves_csv(void)
     if (f)
     {
         char buf[64];
-        fgets(buf, sizeof(buf), f);
+        (void)fgets(buf, sizeof(buf), f);
         fclose(f);
         TEST_ASSERT_EQUAL_STRING("x,y\n", buf);
     }
