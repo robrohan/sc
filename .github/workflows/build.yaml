@@ -46,6 +46,10 @@ jobs:
       - name: Build
         run: ${{ matrix.build_cmd }}
 
+      - name: Test
+        if: matrix.artifact != 'mac-x86_64'
+        run: make test
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
         with:

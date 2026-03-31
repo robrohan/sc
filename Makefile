@@ -7,7 +7,7 @@ endif
 
 BINDIR := bin/$(PLATFORM)/sc
 
-.PHONY: all clean distclean install uninstall
+.PHONY: all clean distclean install uninstall test
 
 all: $(BINDIR)
 	$(MAKE) -C src
@@ -26,3 +26,6 @@ distclean:
 
 install uninstall:
 	$(MAKE) -C src $@
+
+test:
+	$(MAKE) -C tests

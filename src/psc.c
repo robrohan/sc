@@ -19,27 +19,21 @@
  */
 char *rev = "$Revision: 7.16 $";
 
+#include "csv.h"
 #include "sc.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#define END 0
-#define NUM 1
-#define ALPHA 2
-#define SPACE 3
-#define EOL 4
-
 char *coltoa(int col);
 char *progname;
-int getrow(char *p);
-int getcol(char *p);
-int scan(void);
+int   getrow(char *p);
+int   getcol(char *p);
 
 int *fwidth;
 int *precision;
-int maxcols;
+int  maxcols;
 int *realfmt;
 
 int curlen;
@@ -48,28 +42,27 @@ int currow, roff;
 int first;
 int effr, effc;
 
-/* option flags reset */
-int colfirst = FALSE;
-int leftadj = FALSE;
-int r0 = 0;
-int c0 = 0;
-int rinc = 1;
-int cinc = 1;
-int len = 20000;
-char delim1 = ' ';
-char delim2 = '\t';
-int strip_delim = TRUE;
-int drop_format = FALSE;
-int strnums = FALSE;
-int plainnums = FALSE;
-
-char token[1000];
+/* option flags */
+int  colfirst  = FALSE;
+int  leftadj   = FALSE;
+int  r0        = 0;
+int  c0        = 0;
+int  rinc      = 1;
+int  cinc      = 1;
+int  len       = 20000;
+int  drop_format = FALSE;
 
 int main(int argc, char **argv)
 {
-    int c;
-    int i, j;
-    register char *p;
+    int        c;
+    int        i, j;
+    char      *p;
+    csv_reader r;
+    int        delim1      = ' ';
+    int        delim2      = '\t';
+    int        strip_delim = TRUE;
+    int        strnums     = FALSE;
+    int        plainnums   = FALSE;
 
     progname = argv[0];
     while ((c = getopt(argc, argv, "rfLks:R:C:n:d:SPv")) != EOF)
@@ -96,8 +89,8 @@ int main(int argc, char **argv)
             len = atoi(optarg);
             break;
         case 'd':
-            delim1 = optarg[0];
-            delim2 = '\0';
+            delim1 = (unsigned char)optarg[0];
+            delim2 = 0;
             break;
         case 'k':
             strip_delim = FALSE;
@@ -115,14 +108,17 @@ int main(int argc, char **argv)
             (void)fprintf(stderr, "%s: %s\n", progname, rev);
             __attribute__((fallthrough));
         default:
-            (void)fprintf(stderr, "Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
+            (void)fprintf(stderr,
+                          "Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n",
+                          progname);
             exit(1);
         }
     }
 
     if (optind < argc)
     {
-        (void)fprintf(stderr, "Usage: %s [-rL] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
+        (void)fprintf(stderr, "Usage: %s [-rL] [-s v] [-R i] [-C i] [-n i] [-d c]\n",
+                      progname);
         exit(1);
     }
 
@@ -130,44 +126,47 @@ int main(int argc, char **argv)
     if (!growtbl(GROWNEW, 0, 0))
         exit(1);
 
+    csv_reader_init(&r, stdin, delim1, delim2, strip_delim, strnums, plainnums);
+
     curlen = 0;
     curcol = c0;
-    coff = 0;
+    coff   = 0;
     currow = r0;
-    roff = 0;
-    first = TRUE;
+    roff   = 0;
+    first  = TRUE;
 
     while (1)
     {
-
         effr = currow + roff;
         effc = curcol + coff;
 
-        switch (scan())
+        switch (csv_next(&r))
         {
-        case END:
+        case CSV_END:
             if (drop_format)
                 exit(0);
             for (i = 0; i < maxcols; i++)
             {
                 if (fwidth[i])
-                    (void)printf("format %s %d %d %d\n", coltoa(i), fwidth[i] + 1, precision[i], REFMTFIX);
+                    (void)printf("format %s %d %d %d\n", coltoa(i),
+                                 fwidth[i] + 1, precision[i], REFMTFIX);
             }
             exit(0);
-        case NUM:
+        case CSV_NUM:
             first = FALSE;
-            (void)printf("let %s%d = %s\n", coltoa(effc), effr, token);
+            (void)printf("let %s%d = %s\n", coltoa(effc), effr, r.token);
             if (effc >= maxcols - 1)
             {
                 if (!growtbl(GROWCOL, 0, effc))
                 {
-                    (void)fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
+                    (void)fprintf(stderr, "Invalid column used: %s\n",
+                                  coltoa(effc));
                     continue;
                 }
             }
             i = 0;
             j = 0;
-            p = token;
+            p = r.token;
             while (*p && *p != '.')
             {
                 p++;
@@ -194,35 +193,32 @@ int main(int argc, char **argv)
                 if (fwidth[effc] < i)
                     fwidth[effc] = i;
 
-                /* now make sure:
-                 *	1234.567890 (format 11 6)
-                 *	1234567.890 (format 11 3)
-                 *	both show (format 14 6)
-                 *		(really it uses 15 6 to separate columns)
-                 */
                 if ((nw = i - j) > ow)
                     fwidth[effc] += nw - (fwidth[effc] - precision[effc]);
             }
             break;
-        case ALPHA:
+        case CSV_ALPHA:
             first = FALSE;
             if (leftadj)
-                (void)printf("leftstring %s%d = \"%s\"\n", coltoa(effc), effr, token);
+                (void)printf("leftstring %s%d = \"%s\"\n", coltoa(effc), effr,
+                             r.token);
             else
-                (void)printf("rightstring %s%d = \"%s\"\n", coltoa(effc), effr, token);
+                (void)printf("rightstring %s%d = \"%s\"\n", coltoa(effc), effr,
+                             r.token);
             if (effc >= maxcols - 1)
             {
                 if (!growtbl(GROWCOL, 0, effc))
                 {
-                    (void)fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
+                    (void)fprintf(stderr, "Invalid column used: %s\n",
+                                  coltoa(effc));
                     continue;
                 }
             }
-            i = (int)strlen(token);
+            i = (int)strlen(r.token);
             if (i > fwidth[effc])
                 fwidth[effc] = i;
             break;
-        case SPACE:
+        case CSV_SEP:
             if (first && strip_delim)
                 break;
             if (colfirst)
@@ -230,18 +226,18 @@ int main(int argc, char **argv)
             else
                 coff++;
             break;
-        case EOL:
+        case CSV_EOL:
             curlen++;
-            roff = 0;
-            coff = 0;
+            roff  = 0;
+            coff  = 0;
             first = TRUE;
             if (colfirst)
             {
                 if (curlen >= len)
                 {
-                    curcol = c0;
+                    curcol  = c0;
                     currow += rinc;
-                    curlen = 0;
+                    curlen  = 0;
                 }
                 else
                 {
@@ -252,9 +248,9 @@ int main(int argc, char **argv)
             {
                 if (curlen >= len)
                 {
-                    currow = r0;
+                    currow  = r0;
                     curcol += cinc;
-                    curlen = 0;
+                    curlen  = 0;
                 }
                 else
                 {
@@ -266,80 +262,7 @@ int main(int argc, char **argv)
     }
 }
 
-int scan(void)
-{
-    register int c;
-    register char *p;
-    register int founddigit;
-
-    p = token;
-    c = getchar();
-
-    if (c == EOF)
-        return (END);
-
-    if (c == '\n')
-        return (EOL);
-
-    if (c == delim1 || c == delim2)
-    {
-        if (strip_delim)
-        {
-            while ((c = getchar()) && (c == delim1 || c == delim2))
-                ;
-            (void)ungetc(c, stdin);
-        }
-        return (SPACE);
-    }
-
-    if (c == '\"')
-    {
-        while ((c = getchar()) && c != '\"' && c != '\n' && c != EOF)
-            *p++ = (char)c;
-        if (c != '\"')
-            (void)ungetc(c, stdin);
-        *p = '\0';
-        return (ALPHA);
-    }
-
-    while (c != delim1 && c != delim2 && c != '\n' && c != EOF)
-    {
-        *p++ = (char)c;
-        c = getchar();
-    }
-    *p = '\0';
-    (void)ungetc(c, stdin);
-
-    p = token;
-    c = *p;
-    founddigit = FALSE;
-    /*
-     * str_nums always returns numbers as strings
-     * plainnums returns 'numbers' with [-+eE] in them as strings
-     * lastprtnum makes sure a number ends in one of [0-9eE.]
-     */
-    if (!strnums && (isdigit(c) || c == '.' || c == '-' || c == '+'))
-    {
-        int lastprtnum = FALSE;
-
-        while (isdigit(c) || c == '.' || (!plainnums && (c == '-' || c == '+' || c == 'e' || c == 'E')))
-        {
-            if (isdigit(c))
-                lastprtnum = founddigit = TRUE;
-            else if (!(c == '.' || c == 'e' || c == 'E'))
-                lastprtnum = FALSE;
-            c = *p++;
-        }
-        if (c == '\0' && founddigit && lastprtnum)
-            return (NUM);
-        else
-            return (ALPHA);
-    }
-
-    return (ALPHA);
-}
-
-/* turns [A-Z][A-Z] into a number */
+/* turns [A-Z][A-Z] into a column number */
 int getcol(char *p)
 {
     int col;
@@ -347,13 +270,13 @@ int getcol(char *p)
     col = 0;
     if (!p)
         return (0);
-    while (*p && !isalpha(*p))
+    while (*p && !isalpha((unsigned char)*p))
         p++;
     if (!*p)
         return (0);
-    col = (toupper(*p) - 'A');
-    if (isalpha(*++p))
-        col = (col + 1) * 26 + (toupper(*p) - 'A');
+    col = (toupper((unsigned char)*p) - 'A');
+    if (isalpha((unsigned char)*++p))
+        col = (col + 1) * 26 + (toupper((unsigned char)*p) - 'A');
     return (col);
 }
 
@@ -365,11 +288,11 @@ int getrow(char *p)
     row = 0;
     if (!p)
         return (0);
-    while (*p && !isdigit(*p))
+    while (*p && !isdigit((unsigned char)*p))
         p++;
     if (!*p)
         return (0);
-    while (*p && isdigit(*p))
+    while (*p && isdigit((unsigned char)*p))
     {
         row = row * 10 + *p - '0';
         p++;
@@ -381,9 +304,9 @@ int getrow(char *p)
 char *coltoa(int col)
 {
     static char rname[3];
-    register char *p = rname;
+    char       *p = rname;
 
-    if (col < 0 || col > 27 * 26) /* A-Z, AA-ZZ */
+    if (col < 0 || col > 27 * 26)
         (void)fprintf(stderr, "coltoa: invalid col: %d", col);
 
     if (col > 25)
@@ -392,6 +315,6 @@ char *coltoa(int col)
         col %= 26;
     }
     *p++ = (char)(col + 'A');
-    *p = '\0';
+    *p   = '\0';
     return (rname);
 }

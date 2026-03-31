@@ -344,12 +344,12 @@ CFLAGS=-std=c99 -DSYSV3 -O2 -pipe -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-
 LIB=-lm -lncurses
 
 # All of the source files
-SRC=Makefile abbrev.c cmds.c color.c crypt.c eres.sed frame.c format.c gram.y \
+SRC=Makefile abbrev.c cmds.c color.c crypt.c csv.c csv.h eres.sed frame.c format.c gram.y \
 	help.c interp.c lex.c pipe.c psc.c range.c sc.c sc.h screen.c sort.c \
 	sres.sed version.c vi.c vmtbl.c xmalloc.c
 
 # The objects
-OBJS=abbrev.o cmds.o color.o crypt.o format.o frame.o gram.o help.o interp.o \
+OBJS=abbrev.o cmds.o color.o crypt.o csv.o format.o frame.o gram.o help.o interp.o \
 	lex.o pipe.o range.o sc.o screen.o sort.o version.o vi.o vmtbl.o \
 	xmalloc.o
 
@@ -371,8 +371,11 @@ gram.c:	gram.y
 
 $(YTAB).h:	gram.y
 
-p$(name):	psc.c pvmtbl.o pxmalloc.o
-	$(CC) $(CFLAGS) ${LDFLAGS} -o p$(name) psc.c pvmtbl.o pxmalloc.o ${PSCLIB}
+p$(name):	psc.c pvmtbl.o pxmalloc.o csv.o
+	$(CC) $(CFLAGS) ${LDFLAGS} -o p$(name) psc.c pvmtbl.o pxmalloc.o csv.o ${PSCLIB}
+
+csv.o:	csv.c csv.h
+	$(CC) ${CFLAGS} -c csv.c
 
 # Alternative link for MS-DOS (NB: MSC 5.1 has no getopt.c)
 #p$(name):	psc.o pvmtbl.o pxmalloc.o getopt.o
