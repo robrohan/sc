@@ -5,6 +5,7 @@
  */
 
 #include <sys/types.h>
+#include <sys/wait.h>
 #ifdef BSD42
 #include <strings.h>
 #else

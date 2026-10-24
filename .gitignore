@@ -16,5 +16,4 @@ sc
 bin/
 
 # ignoring test binary
-tests/test_csv
-tests/test_sc_csv
+tests/build/

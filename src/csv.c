@@ -25,6 +25,18 @@ void csv_reader_init(csv_reader *r, FILE *fp, int delim1, int delim2,
  * Returns one of CSV_END, CSV_NUM, CSV_ALPHA, CSV_SEP, CSV_EOL.
  * On CSV_NUM or CSV_ALPHA the text is in r->token.
  */
+static int is_delim(const csv_reader *r, int c)
+{
+    return c == r->delim1 || (r->delim2 != 0 && c == r->delim2);
+}
+
+/* Append c to the token, silently truncating overlong fields */
+static void put_tok(csv_reader *r, char **p, int c)
+{
+    if (*p < r->token + CSV_TOKEN_SIZE - 1)
+        *(*p)++ = (char)c;
+}
+
 int csv_next(csv_reader *r)
 {
     int   c;
@@ -37,38 +49,67 @@ int csv_next(csv_reader *r)
     if (c == EOF)
         return CSV_END;
 
+    /* accept \n, \r\n and bare \r line endings */
+    if (c == '\r')
+    {
+        if ((c = getc(r->fp)) != '\n')
+            (void)ungetc(c, r->fp);
+        return CSV_EOL;
+    }
     if (c == '\n')
         return CSV_EOL;
 
-    if (c == r->delim1 || (r->delim2 != 0 && c == r->delim2))
+    if (is_delim(r, c))
     {
         if (r->strip_delim)
         {
-            while ((c = getc(r->fp)) != EOF &&
-                   (c == r->delim1 || (r->delim2 != 0 && c == r->delim2)))
+            while ((c = getc(r->fp)) != EOF && is_delim(r, c))
                 ;
             (void)ungetc(c, r->fp);
         }
         return CSV_SEP;
     }
 
-    /* quoted field */
+    /* quoted field (RFC 4180): "" is a literal quote and delimiters or
+     * line breaks inside the quotes belong to the field.  Line breaks
+     * become spaces since a cell label can't hold them.  Any text after
+     * the closing quote is kept up to the next delimiter. */
     if (c == '"')
     {
-        while ((c = getc(r->fp)) != EOF && c != '"' && c != '\n')
-            *p++ = (char)c;
-        if (c != '"')
-            (void)ungetc(c, r->fp);
+        for (;;)
+        {
+            c = getc(r->fp);
+            if (c == EOF)
+                break;
+            if (c == '"')
+            {
+                if ((c = getc(r->fp)) != '"')
+                    break;
+            }
+            else if (c == '\r' || c == '\n')
+            {
+                if (c == '\r' && (c = getc(r->fp)) != '\n')
+                    (void)ungetc(c, r->fp);
+                c = ' ';
+            }
+            put_tok(r, &p, c);
+        }
+        while (c != EOF && c != '\n' && c != '\r' && !is_delim(r, c))
+        {
+            put_tok(r, &p, c);
+            c = getc(r->fp);
+        }
         *p = '\0';
+        if (c != EOF)
+            (void)ungetc(c, r->fp);
         return CSV_ALPHA;
     }
 
-    /* unquoted field: read until delimiter, newline, or EOF */
-    while (c != r->delim1 && !(r->delim2 != 0 && c == r->delim2) &&
-           c != '\n' && c != EOF)
+    /* unquoted field: read until delimiter, line break, or EOF */
+    while (!is_delim(r, c) && c != '\n' && c != '\r' && c != EOF)
     {
-        *p++ = (char)c;
-        c    = getc(r->fp);
+        put_tok(r, &p, c);
+        c = getc(r->fp);
     }
     *p = '\0';
     (void)ungetc(c, r->fp);

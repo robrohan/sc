@@ -135,6 +135,22 @@ void test_multiple_rows_correct_row_index(void)
     remove(path);
 }
 
+void test_multiline_quoted_field_does_not_shift_rows(void)
+{
+    const char *path = "/tmp/sc_test_multiline.csv";
+    write_temp_csv(path, "name,addr,n\r\nBob,\"1 Main St\r\nApt 2\",5\r\nAmy,x,6\r\n");
+
+    char *out = sc_print(path);
+    TEST_ASSERT_NOT_NULL(out);
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(out, "leftstring B1 = \"1 Main St Apt 2\""), "B1 joined");
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(out, "let C1 = 5"),                "C1 should be 5");
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(out, "leftstring A2 = \"Amy\""),   "A2 should be 'Amy'");
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(out, "let C2 = 6"),                "C2 should be 6");
+
+    free(out);
+    remove(path);
+}
+
 void test_save_to_sc_file_preserves_csv(void)
 {
     /* Load a CSV and explicitly save to .sc — the original .csv must be unchanged */
@@ -222,6 +238,7 @@ int main(void)
     RUN_TEST(test_quoted_field_with_comma_loads_as_string);
     RUN_TEST(test_empty_field_skips_cell);
     RUN_TEST(test_multiple_rows_correct_row_index);
+    RUN_TEST(test_multiline_quoted_field_does_not_shift_rows);
     RUN_TEST(test_save_to_sc_file_preserves_csv);
     RUN_TEST(test_sc_output_contains_expected_cells);
 
