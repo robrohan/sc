@@ -331,13 +331,13 @@ LN=ln
 
 #########################################
 # Use this for Linux
-CC=gcc
+CC=clang
 # Only use -Wall for testing, since it produces warnings that are of no
 # real effect on the reliability of the program, but may concern some
 # people who don't understand them.
 #CFLAGS=-DSYSV3 -O2 -Wall -pipe
 #CFLAGS=-DSYSV3 -O2 -pipe
-CFLAGS=-std=c99 -DSYSV3 -O2 -pipe -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align \
+CFLAGS=-std=c99 -D_DEFAULT_SOURCE -DSYSV3 -O2 -pipe -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align \
  -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations \
  -Wdouble-promotion -Wswitch-enum -Wimplicit-fallthrough \
  -Wconversion -Wsign-conversion -Wundef

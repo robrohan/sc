@@ -277,6 +277,92 @@ void test_tab_delimiter(void)
 }
 
 /* ------------------------------------------------------------------ */
+/* real-world CSV quirks (RFC 4180)                                    */
+/* ------------------------------------------------------------------ */
+
+void test_crlf_line_endings(void)
+{
+    FILE *fp = open_buf("a,1\r\nb,2\r\n");
+    csv_reader r;
+    init_csv(&r, fp);
+
+    TEST_ASSERT_EQUAL_INT(CSV_ALPHA, csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_SEP,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_NUM,   csv_next(&r));
+    TEST_ASSERT_EQUAL_STRING("1", r.token);
+    TEST_ASSERT_EQUAL_INT(CSV_EOL,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_ALPHA, csv_next(&r));
+    TEST_ASSERT_EQUAL_STRING("b", r.token);
+    TEST_ASSERT_EQUAL_INT(CSV_SEP,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_NUM,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_EOL,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_END,   csv_next(&r));
+    fclose(fp);
+}
+
+void test_escaped_quote_in_quoted_field(void)
+{
+    FILE *fp = open_buf("\"say \"\"hi\"\", ok\",5\n");
+    csv_reader r;
+    init_csv(&r, fp);
+
+    TEST_ASSERT_EQUAL_INT(CSV_ALPHA, csv_next(&r));
+    TEST_ASSERT_EQUAL_STRING("say \"hi\", ok", r.token);
+    TEST_ASSERT_EQUAL_INT(CSV_SEP,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_NUM,   csv_next(&r));
+    fclose(fp);
+}
+
+void test_newline_in_quoted_field_stays_on_row(void)
+{
+    FILE *fp = open_buf("\"1 Main St\r\nApt 2\",5\nnext\n");
+    csv_reader r;
+    init_csv(&r, fp);
+
+    TEST_ASSERT_EQUAL_INT(CSV_ALPHA, csv_next(&r));
+    TEST_ASSERT_EQUAL_STRING("1 Main St Apt 2", r.token);
+    TEST_ASSERT_EQUAL_INT(CSV_SEP,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_NUM,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_EOL,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_ALPHA, csv_next(&r));
+    TEST_ASSERT_EQUAL_STRING("next", r.token);
+    fclose(fp);
+}
+
+void test_text_after_closing_quote_is_kept(void)
+{
+    FILE *fp = open_buf("\"q\"x,y\n");
+    csv_reader r;
+    init_csv(&r, fp);
+
+    TEST_ASSERT_EQUAL_INT(CSV_ALPHA, csv_next(&r));
+    TEST_ASSERT_EQUAL_STRING("qx", r.token);
+    TEST_ASSERT_EQUAL_INT(CSV_SEP,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_ALPHA, csv_next(&r));
+    TEST_ASSERT_EQUAL_STRING("y", r.token);
+    fclose(fp);
+}
+
+void test_long_field_is_truncated(void)
+{
+    char  line[CSV_TOKEN_SIZE * 3 + 8];
+    FILE *fp;
+    csv_reader r;
+
+    memset(line, 'x', CSV_TOKEN_SIZE * 3);
+    strcpy(line + CSV_TOKEN_SIZE * 3, ",y\n");
+    fp = open_buf(line);
+    init_csv(&r, fp);
+
+    TEST_ASSERT_EQUAL_INT(CSV_ALPHA, csv_next(&r));
+    TEST_ASSERT_EQUAL_size_t(CSV_TOKEN_SIZE - 1, strlen(r.token));
+    TEST_ASSERT_EQUAL_INT(CSV_SEP,   csv_next(&r));
+    TEST_ASSERT_EQUAL_INT(CSV_ALPHA, csv_next(&r));
+    TEST_ASSERT_EQUAL_STRING("y", r.token);
+    fclose(fp);
+}
+
+/* ------------------------------------------------------------------ */
 /* main                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -300,6 +386,11 @@ int main(void)
     RUN_TEST(test_strnums_treats_number_as_alpha);
     RUN_TEST(test_two_rows);
     RUN_TEST(test_tab_delimiter);
+    RUN_TEST(test_crlf_line_endings);
+    RUN_TEST(test_escaped_quote_in_quoted_field);
+    RUN_TEST(test_newline_in_quoted_field_stays_on_row);
+    RUN_TEST(test_text_after_closing_quote_is_kept);
+    RUN_TEST(test_long_field_is_truncated);
 
     return UNITY_END();
 }
